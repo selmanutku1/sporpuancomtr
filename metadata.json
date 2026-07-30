@@ -1,0 +1,6 @@
+{
+  "name": "SporPuan",
+  "description": "sporpuan.com - Spor etkinliklerini puanlayan, detaylı kriter analizi ve kullanıcı değerlendirme platformu",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
