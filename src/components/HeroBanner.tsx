@@ -38,10 +38,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2.5 pt-2">
               <button
                 onClick={onOpenAddReview}
-                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-sm flex items-center gap-2 active:scale-95"
+                className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-95 min-h-[44px]"
               >
                 <Star className="w-4 h-4 fill-white text-white" />
                 <span>Bir Etkinliği Puanla</span>
@@ -49,7 +49,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
               <button
                 onClick={onOpenMapView}
-                className="px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-sm rounded-xl transition flex items-center gap-2 shadow-sm active:scale-95"
+                className="w-full sm:w-auto px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95 min-h-[44px]"
               >
                 <MapPin className="w-4 h-4 text-blue-600" />
                 <span>Harita Görünümü</span>
@@ -57,7 +57,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
               <button
                 onClick={onOpenAiAdvisor}
-                className="px-5 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-sm rounded-xl transition flex items-center gap-2"
+                className="w-full sm:w-auto px-5 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 min-h-[44px]"
               >
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 <span>Sporpuan AI</span>
@@ -65,13 +65,13 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </div>
 
             {/* Popular Topics Quick Filters */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 pt-3 flex-wrap">
-              <span className="font-semibold text-slate-700">Popüler Aramalar:</span>
+            <div className="flex items-center gap-2 text-xs text-slate-500 pt-3 overflow-x-auto pb-1 scrollbar-none">
+              <span className="font-semibold text-slate-700 shrink-0">Popüler Aramalar:</span>
               {['İstanbul Maratonu', 'EuroLeague Derbisi', 'Süper Lig', 'Sultanlar Ligi', 'Uludağ Trail'].map((tag) => (
                 <button
                   key={tag}
                   onClick={() => onSelectTopCategory(tag)}
-                  className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 rounded-md text-slate-600 hover:text-blue-600 transition shadow-2xs"
+                  className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 rounded-md text-slate-600 hover:text-blue-600 transition shadow-2xs whitespace-nowrap shrink-0"
                 >
                   #{tag}
                 </button>

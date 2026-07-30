@@ -304,7 +304,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased flex flex-col selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased flex flex-col pb-16 md:pb-0 selection:bg-blue-600 selection:text-white">
       
       {/* Navigation Header */}
       <Header

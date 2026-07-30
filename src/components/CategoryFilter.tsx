@@ -84,7 +84,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         </div>
 
         {/* View Mode Toggle & Sort dropdown */}
-        <div className="flex items-center gap-3 text-xs text-slate-500 shrink-0 self-end md:self-center flex-wrap">
+        <div className="flex items-center justify-between md:justify-end gap-3 text-xs text-slate-500 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap pt-1 md:pt-0 border-t border-slate-100 md:border-t-0">
           
           {/* Grid vs Map Toggle */}
           <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
@@ -117,7 +117,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-white text-slate-800 border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
+              className="bg-white text-slate-800 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-blue-500 font-bold text-xs cursor-pointer shadow-2xs"
             >
               <option value="score-desc">En Yüksek Puan (SporPuan)</option>
               <option value="reviews-desc">En Çok Yorum Alanlar</option>
