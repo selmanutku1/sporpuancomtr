@@ -128,13 +128,24 @@ export const Header: React.FC<HeaderProps> = ({
             
             {/* Brand Logo - Clean Soft Logo */}
             <div className="flex items-center gap-2 shrink-0">
-              <button onClick={handleResetHome} className="flex items-center gap-2 group text-left">
-                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-blue-600 flex items-center justify-center shadow-md text-white group-hover:bg-blue-700 transition">
-                  <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
+              <button onClick={handleResetHome} className="flex items-center gap-2.5 group text-left">
+                <img 
+                  src="/sporpuan-logo.svg" 
+                  alt="SporPuan Logo" 
+                  className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-200 object-cover"
+                  onError={(e) => {
+                    // Fallback to Icon if image load fails
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
                 <div className="flex flex-col">
-                  <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
-                    spor<span className="text-blue-600">puan</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
+                      spor<span className="text-blue-600">puan</span>
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 -mt-1 hidden sm:block tracking-wide">
+                    ETKİNLİK PUANLAMA
                   </span>
                 </div>
               </button>

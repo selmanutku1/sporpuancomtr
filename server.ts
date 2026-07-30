@@ -121,6 +121,57 @@ Yanıtını dostane, bilgilendirici, objektif ve Türkçe olarak ver. Gerektiği
     }
   });
 
+  // Serve public static logo and OG image files explicitly with correct content-types
+  app.get(['/og-image.svg', '/sporpuan-logo.svg', '/favicon.svg'], (req, res) => {
+    const filename = req.path.replace('/', '');
+    const publicFilePath = path.join(process.cwd(), 'public', filename);
+    const distFilePath = path.join(process.cwd(), 'dist', filename);
+
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+
+    res.sendFile(publicFilePath, (err) => {
+      if (err) {
+        res.sendFile(distFilePath, (distErr) => {
+          if (distErr) {
+            res.status(404).send('Logo file not found');
+          }
+        });
+      }
+    });
+  });
+
+  // Dynamic OpenGraph Meta Tag Handler for Social Media Scrapers (WhatsApp, Twitter, LinkedIn, Telegram)
+  app.use(async (req, res, next) => {
+    if (req.method === 'GET' && (req.headers.accept || '').includes('text/html')) {
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host || 'localhost:3000';
+      const baseUrl = `${protocol}://${host}`;
+
+      if (process.env.NODE_ENV !== 'production') {
+        // In Dev mode, let Vite handle HTML but inject absolute URLs
+        next();
+      } else {
+        const indexPath = path.join(process.cwd(), 'dist', 'index.html');
+        try {
+          const fs = await import('fs/promises');
+          let html = await fs.readFile(indexPath, 'utf-8');
+          // Replace relative og:image and og:logo URLs with absolute URLs required by WhatsApp & Twitter scrapers
+          html = html.replace(/content="\/og-image\.svg"/g, `content="${baseUrl}/og-image.svg"`);
+          html = html.replace(/content="\/sporpuan-logo\.svg"/g, `content="${baseUrl}/sporpuan-logo.svg"`);
+          html = html.replace(/href="\/favicon\.svg"/g, `href="${baseUrl}/favicon.svg"`);
+          res.setHeader('Content-Type', 'text/html');
+          return res.send(html);
+        } catch (e) {
+          next();
+        }
+      }
+    } else {
+      next();
+    }
+  });
+
   // Vite veya Static sunum
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

@@ -9,12 +9,22 @@ export const Footer: React.FC = () => {
         {/* Brand Left */}
         <div className="md:col-span-5 space-y-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow text-white">
-              <ShieldCheck className="w-5 h-5 text-white" />
+            <img 
+              src="/sporpuan-logo.svg" 
+              alt="SporPuan Logo" 
+              className="w-10 h-10 rounded-xl shadow object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <div className="flex flex-col">
+              <span className="text-2xl font-black text-slate-900 font-sans leading-none">
+                spor<span className="text-blue-600">puan</span>
+              </span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">
+                BAĞIMSIZ SPOR PLATFORMU
+              </span>
             </div>
-            <span className="text-2xl font-black text-slate-900 font-sans">
-              spor<span className="text-blue-600">puan</span>
-            </span>
           </div>
 
           <p className="text-xs text-slate-500 leading-relaxed max-w-md">
