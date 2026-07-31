@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'organizer';
+export type UserRole = 'user' | 'organizer' | 'admin';
 
 export interface UserProfile {
   id: string;
@@ -13,21 +13,13 @@ export interface UserProfile {
 
 export type SportsCategory = 
   | 'Tümü'
-  | 'Futbol'
-  | 'Basketbol'
-  | 'Maraton & Koşu'
-  | 'Voleybol'
-  | 'Doğa & Extreme'
-  | 'Fitness & CrossFit'
-  | 'Motor Sporları'
-  | 'Çocuk & Gençlik';
+  | 'Spor Tesisleri'
+  | 'Spor Salonları'
+  | 'Spor Okulları'
+  | 'Spor Etkinlikleri';
 
 export interface RatingCriterion {
-  organization: number;   // Organizasyon & Tesis Kalitesi (1-10)
-  valueForMoney: number;  // Bilet / Fiyat-Performans (1-10)
-  amenities: number;      // Yiyecek, İçecek & Sosyal Alanlar (1-10)
-  atmosphere: number;     // Tribün & Coşku Atmosferi (1-10)
-  accessibility: number;  // Ulaşım, Otopark & Güvenlik (1-10)
+  [key: string]: number;
 }
 
 export interface Review {
@@ -46,17 +38,6 @@ export interface Review {
   tags: string[];
 }
 
-export interface AiAnalysisData {
-  overallScore: number;
-  scoreCategory: 'Mükemmel' | 'Çok İyi' | 'Ortalama' | 'Geliştirilmeli';
-  scores: RatingCriterion;
-  summary: string;
-  pros: string[];
-  cons: string[];
-  fanAdvice: string;
-  organizerAdvice: string;
-}
-
 export interface SportsEvent {
   id: string;
   title: string;
@@ -70,7 +51,7 @@ export interface SportsEvent {
   organizerVerified: boolean;
   image: string;
   description: string;
-  ticketPriceRange: string;
+  ticketPriceRange?: string;
   ticketUrl?: string;
   overallScore: number;
   ratingBreakdown: RatingCriterion;
@@ -80,7 +61,6 @@ export interface SportsEvent {
   reviews: Review[];
   latitude?: number;
   longitude?: number;
-  aiAnalysis?: AiAnalysisData;
   sourceProvider?: string;
   lastSyncedAt?: string;
 }

@@ -1,40 +1,38 @@
 import React from 'react';
-import { Trophy, ShieldCheck, Star, Sparkles, MapPin } from 'lucide-react';
+import { Trophy, ShieldCheck, Star, Sparkles, MapPin, Activity, CheckCircle2 } from 'lucide-react';
 
 interface HeroBannerProps {
-  onOpenAiAdvisor: () => void;
   onOpenAddReview: () => void;
   onOpenMapView: () => void;
   onSelectTopCategory: (cat: string) => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
-  onOpenAiAdvisor,
   onOpenAddReview,
   onOpenMapView,
   onSelectTopCategory,
 }) => {
   return (
-    <div className="relative bg-gradient-to-b from-blue-50/70 via-slate-50 to-white border-b border-slate-200 text-slate-800 pt-10 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="relative bg-gradient-to-b from-blue-50/70 via-slate-50 to-white border-b border-slate-200 text-slate-800 pt-10 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
           
-          {/* Main Copy */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* Left Text Content */}
+          <div className="w-full lg:w-3/5 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-100 border border-blue-200 text-blue-800 text-xs font-semibold">
               <ShieldCheck className="w-4 h-4 text-blue-600" />
-              <span>5 Boyutlu Bağımsız Spor Etkinliği Puanlama Platformu</span>
+              <span>Türkiye'nin Spor Değerlendirme Platformu</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-slate-900">
-              Biletini Almadan Önce <br className="hidden sm:inline" />
+            <h1 className="font-['Red_Hat_Display',_sans-serif] font-bold text-[#23262f] text-[48px] sm:text-[54px] leading-[1.15]">
+              Spor Tesislerini, Spor Okullarını, Etkinlikleri <br className="hidden sm:inline" />
               <span className="text-blue-600">
-                Gerçek SporPuan Skoruna
-              </span> Bak.
+                Puanla, Yorumla, Keşfet!
+              </span>
             </h1>
 
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl">
-              <strong className="text-blue-700">sporpuan</strong>; maratonlardan derbilere tüm spor organizasyonlarını tribün atmosferi, ulaşım, bilet fiyatı ve kalite yönünden 10 üzerinden şeffafça puanlar.
+              <strong className="text-blue-700">sporpuan</strong> ile spor tesislerini, spor okullarını ve etkinlikleri gerçek kullanıcı deneyimleriyle şeffafça inceleyin, puanlayın ve size en uygununu keşfedin.
             </p>
 
             {/* CTAs */}
@@ -44,23 +42,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-95 min-h-[44px]"
               >
                 <Star className="w-4 h-4 fill-white text-white" />
-                <span>Bir Etkinliği Puanla</span>
+                <span>Puanla</span>
               </button>
-
+              
               <button
                 onClick={onOpenMapView}
                 className="w-full sm:w-auto px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95 min-h-[44px]"
               >
                 <MapPin className="w-4 h-4 text-blue-600" />
                 <span>Harita Görünümü</span>
-              </button>
-
-              <button
-                onClick={onOpenAiAdvisor}
-                className="w-full sm:w-auto px-5 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 min-h-[44px]"
-              >
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Sporpuan AI</span>
               </button>
             </div>
 
@@ -79,89 +69,90 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </div>
           </div>
 
-          {/* Right Visual Card - SporPuan Index Badge */}
-          <div className="lg:col-span-5">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md relative overflow-hidden">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-500" />
-                  <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-                    SporPuan Değerlendirme Kriterleri
-                  </span>
-                </div>
-                <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-bold">
-                  v2.4
-                </span>
-              </div>
-
-              {/* 5 Dimensions breakdown sample */}
-              <div className="space-y-3.5 text-xs">
-                <div>
-                  <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                    <span>🏟️ Organizasyon & Tesis</span>
-                    <span className="font-bold text-blue-600">9.6 / 10</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                    <div className="h-full bg-blue-600 rounded-full w-[96%]" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                    <span>🔥 Tribün & Coşku Atmosferi</span>
-                    <span className="font-bold text-blue-600">9.8 / 10</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                    <div className="h-full bg-blue-600 rounded-full w-[98%]" />
+          {/* Right Visual Decoration */}
+          <div className="w-full lg:w-2/5 hidden md:flex justify-center relative">
+            <div className="absolute inset-0 bg-blue-200/50 rounded-full blur-[80px] -z-10"></div>
+            
+            <div className="relative w-full max-w-sm aspect-square">
+              
+              {/* Main Card */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 p-5 transform rotate-[-2deg] z-20">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                      <Trophy className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black text-slate-900">Merkez Spor Kompleksi</div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                         <span className="text-xs font-bold text-slate-600 ml-1">5.0</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                    <span>🎟️ Bilet & Fiyat/Performans</span>
-                    <span className="font-bold text-blue-600">9.1 / 10</span>
+                
+                <div className="space-y-3 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full">
+                      <div className="h-full w-[90%] bg-blue-500 rounded-full"></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                    <div className="h-full bg-blue-600 rounded-full w-[91%]" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full">
+                      <div className="h-full w-[95%] bg-emerald-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full">
+                      <div className="h-full w-[85%] bg-amber-500 rounded-full"></div>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                    <span>🍔 Yiyecek & Sosyal Alanlar</span>
-                    <span className="font-bold text-blue-600">8.9 / 10</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                    <div className="h-full bg-blue-600 rounded-full w-[89%]" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                    <span>🚗 Ulaşım, Otopark & Tahliye</span>
-                    <span className="font-bold text-blue-600">8.7 / 10</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                    <div className="h-full bg-blue-600 rounded-full w-[87%]" />
-                  </div>
+                
+                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Güvenilir Tesis Puanlaması</span>
                 </div>
               </div>
 
-              {/* Bottom Stat Footer */}
-              <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-lg font-black text-slate-900">1,240+</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Etkinlik Kaydı</p>
-                </div>
-                <div>
-                  <p className="text-lg font-black text-blue-600">48.5K+</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Kullanıcı İncelemesi</p>
-                </div>
-                <div>
-                  <p className="text-lg font-black text-amber-500">9.2/10</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Ortalama Puan</p>
-                </div>
+              {/* Floating Element 1 */}
+              <div className="absolute top-4 right-8 bg-white p-3.5 rounded-2xl shadow-lg border border-slate-100 transform rotate-[8deg] z-30 animate-pulse">
+                 <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center">
+                     <MapPin className="w-4 h-4 text-rose-500" />
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-bold text-slate-400">Konum</span>
+                     <span className="text-xs font-black text-slate-800">Kadıköy, İst</span>
+                   </div>
+                 </div>
               </div>
+
+              {/* Floating Element 2 */}
+              <div className="absolute bottom-4 left-4 bg-white p-3.5 rounded-2xl shadow-lg border border-slate-100 transform rotate-[-6deg] z-30">
+                 <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                     <Activity className="w-4 h-4 text-indigo-600" />
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-bold text-slate-400">Tesis Puanı</span>
+                     <span className="text-xs font-black text-slate-800">Harika (9.2)</span>
+                   </div>
+                 </div>
+              </div>
+              
+              {/* Sparkles */}
+              <Sparkles className="absolute -top-4 left-1/4 w-8 h-8 text-blue-400/60 z-10" />
+              <Sparkles className="absolute bottom-1/4 right-0 w-6 h-6 text-amber-400/60 z-10" />
+              
             </div>
           </div>
 
@@ -170,4 +161,3 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     </div>
   );
 };
-

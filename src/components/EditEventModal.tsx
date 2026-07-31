@@ -23,7 +23,6 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [time, setTime] = useState(event.time);
   const [organizer, setOrganizer] = useState(event.organizer);
   const [description, setDescription] = useState(event.summary || '');
-  const [ticketPriceRange, setTicketPriceRange] = useState(event.ticketPriceRange || '₺200 - ₺800');
   const [ticketUrl, setTicketUrl] = useState(event.ticketUrl || '');
   const [image, setImage] = useState(event.image);
   const [isCustomUploaded, setIsCustomUploaded] = useState(false);
@@ -130,7 +129,6 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       time: time.trim(),
       organizer: organizer.trim() || event.organizer,
       summary: description.trim() || event.summary,
-      ticketPriceRange: ticketPriceRange.trim(),
       ticketUrl: ticketUrl.trim() || event.ticketUrl,
       image,
     };
@@ -272,31 +270,6 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     placeholder="örn: 19:00"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* Price Range & Ticket Link */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">Bilet / Giriş Ücreti</label>
-                  <input
-                    type="text"
-                    value={ticketPriceRange}
-                    onChange={(e) => setTicketPriceRange(e.target.value)}
-                    placeholder="örn: ₺150 - ₺500 veya Ücretsiz"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">Bilet / Kayıt Bağlantısı (URL)</label>
-                  <input
-                    type="url"
-                    value={ticketUrl}
-                    onChange={(e) => setTicketUrl(e.target.value)}
-                    placeholder="https://passo.com.tr"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
                   />
                 </div>

@@ -1,13 +1,35 @@
-import { RatingCriterion } from '../types';
+import { RatingCriterion, SportsCategory } from '../types';
 
-export function calculateOverallScore(scores: RatingCriterion): number {
-  const sum = 
-    scores.organization * 0.25 +
-    scores.atmosphere * 0.25 +
-    scores.valueForMoney * 0.20 +
-    scores.amenities * 0.15 +
-    scores.accessibility * 0.15;
-  return Math.round(sum * 10) / 10;
+export const COMMON_CRITERIA = [
+  { key: 'kaliteIcerik', label: 'Kalite & İçerik', desc: 'Eğitim, ekipman, organizasyon ve altyapı', weight: 0.4 },
+  { key: 'guvenlik', label: 'Güvenlik', desc: 'Sağlık, ilk yardım ve çevresel önlemler', weight: 0.2 },
+  { key: 'fiyatDeger', label: 'Fiyat / Değer', desc: 'Şeffaflık, maliyet-fayda dengesi', weight: 0.2 },
+  { key: 'deneyimIletisim', label: 'Deneyim & İletişim', desc: 'Personel ilgisi, geri bildirim ve atmosfer', weight: 0.2 }
+];
+
+export const CATEGORY_CRITERIA_MAP: Record<SportsCategory, { key: string; label: string; desc: string; weight: number }[]> = {
+  'Tümü': [],
+  'Spor Tesisleri': COMMON_CRITERIA,
+  'Spor Salonları': COMMON_CRITERIA,
+  'Spor Okulları': COMMON_CRITERIA,
+  'Spor Etkinlikleri': COMMON_CRITERIA
+};
+
+export function calculateOverallScore(scores: RatingCriterion, category: SportsCategory = 'Spor Etkinlikleri'): number {
+  const mapping = CATEGORY_CRITERIA_MAP[category] || COMMON_CRITERIA;
+  let sum = 0;
+  let totalWeight = 0;
+  
+  for (const crit of mapping) {
+    if (scores[crit.key] !== undefined) {
+      sum += scores[crit.key] * crit.weight;
+      totalWeight += crit.weight;
+    }
+  }
+  
+  // Normalization if weights don't add up to 1 for some reason, or if scores are missing
+  if (totalWeight === 0) return 0;
+  return Math.round((sum / totalWeight) * 10) / 10;
 }
 
 export function getScoreBadgeColor(score: number): {
@@ -53,31 +75,3 @@ export function getScoreLabel(score: number): string {
   if (score >= 7.0) return 'Ortalama';
   return 'Geliştirilmeli';
 }
-
-export const RATING_CRITERIA_LABELS: Record<keyof RatingCriterion, { label: string; icon: string; desc: string }> = {
-  organization: {
-    label: 'Organizasyon & Tesis',
-    icon: '🏟️',
-    desc: 'Akış hızı, giriş turnikeleri, sporcu/seyirci yönlendirmesi ve zemin kalitesi',
-  },
-  atmosphere: {
-    label: 'Tribün & Coşku Atmosferi',
-    icon: '🔥',
-    desc: 'Seyirci coşkusu, ses/ışık şovları, bando, desibel ve genel enerji',
-  },
-  valueForMoney: {
-    label: 'Bilet / Fiyat-Performans',
-    icon: '🎟️',
-    desc: 'Bilet fiyatının sunulan seyir ve organizasyon kalitesini karşılama oranı',
-  },
-  amenities: {
-    label: 'Yiyecek & İçecek / Sosyal Alan',
-    icon: '🍔',
-    desc: 'Kantin/büfe çeşitliliği, tuvalet hijyeni ve bekleme alanları',
-  },
-  accessibility: {
-    label: 'Ulaşım, Güvenlik & Otopark',
-    icon: '🚗',
-    desc: 'Toplu taşıma bağlantısı, park imkanı, güvenlik personeli yaklaşımı ve tahliye hızı',
-  },
-};

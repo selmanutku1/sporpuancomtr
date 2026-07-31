@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { INITIAL_EVENTS } from './data/mockEvents';
-import { SportsEvent, SportsCategory, Review, AiAnalysisData, UserProfile, UserRole } from './types';
+import { SportsEvent, SportsCategory, Review, UserProfile, UserRole } from './types';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
 import { CategoryFilter } from './components/CategoryFilter';
@@ -8,20 +9,54 @@ import { EventCard } from './components/EventCard';
 import { EventDetailModal } from './components/EventDetailModal';
 import { AddReviewModal } from './components/AddReviewModal';
 import { SubmitEventModal } from './components/SubmitEventModal';
-import { AiAdvisorModal } from './components/AiAdvisorModal';
-import { LeaderboardSection } from './components/LeaderboardSection';
+
 import { EventMapView } from './components/EventMapView';
-import { AutoSyncModal } from './components/AutoSyncModal';
-import { EventAdminModal } from './components/EventAdminModal';
 import { EditEventModal } from './components/EditEventModal';
 import { AuthModal } from './components/AuthModal';
-import { performWebSync } from './services/syncEngine';
+import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
 import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin } from 'lucide-react';
+import { CATEGORY_CRITERIA_MAP, calculateOverallScore } from './lib/scoreUtils';
+
+const EventDetailWrapper = ({ 
+  events, 
+  onRateClick, 
+  onLikeReview, 
+  currentUser, 
+  setEditingEvent 
+}: { 
+  events: SportsEvent[], 
+  onRateClick: (event: SportsEvent) => void, 
+  onLikeReview: (eventId: string, reviewId: string) => void, 
+  currentUser: UserProfile | null, 
+  setEditingEvent: (event: SportsEvent) => void 
+}) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const event = events.find((e) => e.id === id);
+
+  if (!event) return <div className="p-20 text-center text-xl font-bold">Etkinlik/Tesis bulunamadı.</div>;
+
+  return (
+    <EventDetailModal
+      event={event}
+      onClose={() => navigate('/')}
+      onOpenRateForm={onRateClick}
+      onLikeReview={onLikeReview}
+      onOpenEditModal={
+        currentUser?.role === 'admin'
+          ? (ev) => setEditingEvent(ev)
+          : undefined
+      }
+    />
+  );
+};
 
 export default function App() {
+  const navigate = useNavigate();
+
   const [events, setEvents] = useState<SportsEvent[]>(() => {
-    const saved = localStorage.getItem('sporpuan_events');
+    const saved = localStorage.getItem('sporpuan_events_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -35,7 +70,7 @@ export default function App() {
   // Save changes to localStorage
   const updateEventsState = (newEvents: SportsEvent[]) => {
     setEvents(newEvents);
-    localStorage.setItem('sporpuan_events', JSON.stringify(newEvents));
+    localStorage.setItem('sporpuan_events_v2', JSON.stringify(newEvents));
   };
 
   // View Mode State
@@ -48,16 +83,10 @@ export default function App() {
   const [sortBy, setSortBy] = useState('score-desc');
 
   // Modal States
-  const [activeDetailEvent, setActiveDetailEvent] = useState<SportsEvent | null>(null);
   const [rateModalEvent, setRateModalEvent] = useState<SportsEvent | null>(null);
   const [isRateModalOpen, setIsRateModalOpen] = useState(false);
   const [isSubmitEventOpen, setIsSubmitEventOpen] = useState(false);
-  const [isAiAdvisorOpen, setIsAiAdvisorOpen] = useState(false);
-  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [isMapViewModalOpen, setIsMapViewModalOpen] = useState(false);
-  const [isAutoSyncOpen, setIsAutoSyncOpen] = useState(false);
-  const [isAutoSyncEnabled, setIsAutoSyncEnabled] = useState(true);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<SportsEvent | null>(null);
 
   // User Authentication State
@@ -80,7 +109,6 @@ export default function App() {
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalRole, setAuthModalRole] = useState<UserRole>('user');
 
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
@@ -100,8 +128,7 @@ export default function App() {
     }
   };
 
-  const handleOpenAuthModal = (role: UserRole = 'user') => {
-    setAuthModalRole(role);
+  const handleOpenAuthModal = () => {
     setIsAuthModalOpen(true);
   };
 
@@ -113,28 +140,11 @@ export default function App() {
   const handleUpdateEvent = (updatedEvent: SportsEvent) => {
     const updatedList = events.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev));
     updateEventsState(updatedList);
-    if (activeDetailEvent && activeDetailEvent.id === updatedEvent.id) {
-      setActiveDetailEvent(updatedEvent);
-    }
   };
 
   const handleResetEvents = () => {
     updateEventsState(INITIAL_EVENTS);
   };
-
-  // Auto Sync Effect - Synchronizes live sports events automatically
-  React.useEffect(() => {
-    if (!isAutoSyncEnabled) return;
-
-    const timer = setTimeout(() => {
-      const result = performWebSync(events);
-      if (result.addedCount > 0) {
-        updateEventsState([...events, ...result.newEvents]);
-      }
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [isAutoSyncEnabled]);
 
   // Extract list of cities
   const cities = useMemo(() => {
@@ -147,14 +157,10 @@ export default function App() {
   const categoryCounts = useMemo(() => {
     const counts: Record<SportsCategory, number> = {
       'Tümü': events.length,
-      'Futbol': 0,
-      'Basketbol': 0,
-      'Maraton & Koşu': 0,
-      'Voleybol': 0,
-      'Doğa & Extreme': 0,
-      'Fitness & CrossFit': 0,
-      'Motor Sporları': 0,
-      'Çocuk & Gençlik': 0,
+      'Spor Tesisleri': 0,
+      'Spor Salonları': 0,
+      'Spor Okulları': 0,
+      'Spor Etkinlikleri': 0,
     };
 
     events.forEach((e) => {
@@ -210,28 +216,16 @@ export default function App() {
         const newReviews = [newReview, ...ev.reviews];
         const newReviewCount = ev.reviewCount + 1;
 
-        // Recalculate breakdown averages
-        const sumOrg = newReviews.reduce((acc, r) => acc + r.scores.organization, 0);
-        const sumAtm = newReviews.reduce((acc, r) => acc + r.scores.atmosphere, 0);
-        const sumVal = newReviews.reduce((acc, r) => acc + r.scores.valueForMoney, 0);
-        const sumAme = newReviews.reduce((acc, r) => acc + r.scores.amenities, 0);
-        const sumAcc = newReviews.reduce((acc, r) => acc + r.scores.accessibility, 0);
+        // Recalculate breakdown averages dynamically based on category
+        const newBreakdown: Record<string, number> = {};
+        const criteria = CATEGORY_CRITERIA_MAP[ev.category] || CATEGORY_CRITERIA_MAP['Spor Etkinlikleri'];
+        
+        criteria.forEach(crit => {
+          const sum = newReviews.reduce((acc, r) => acc + (r.scores[crit.key] || 0), 0);
+          newBreakdown[crit.key] = Math.round((sum / newReviews.length) * 10) / 10;
+        });
 
-        const newBreakdown = {
-          organization: Math.round((sumOrg / newReviews.length) * 10) / 10,
-          atmosphere: Math.round((sumAtm / newReviews.length) * 10) / 10,
-          valueForMoney: Math.round((sumVal / newReviews.length) * 10) / 10,
-          amenities: Math.round((sumAme / newReviews.length) * 10) / 10,
-          accessibility: Math.round((sumAcc / newReviews.length) * 10) / 10,
-        };
-
-        const newOverall = Math.round(
-          (newBreakdown.organization * 0.25 +
-            newBreakdown.atmosphere * 0.25 +
-            newBreakdown.valueForMoney * 0.20 +
-            newBreakdown.amenities * 0.15 +
-            newBreakdown.accessibility * 0.15) * 10
-        ) / 10;
+        const newOverall = calculateOverallScore(newBreakdown, ev.category);
 
         const updatedEv = {
           ...ev,
@@ -240,10 +234,6 @@ export default function App() {
           ratingBreakdown: newBreakdown,
           overallScore: newOverall,
         };
-
-        if (activeDetailEvent && activeDetailEvent.id === eventId) {
-          setActiveDetailEvent(updatedEv);
-        }
 
         return updatedEv;
       }
@@ -270,26 +260,7 @@ export default function App() {
           return r;
         });
         const updatedEv = { ...ev, reviews: newReviews };
-        if (activeDetailEvent && activeDetailEvent.id === eventId) {
-          setActiveDetailEvent(updatedEv);
-        }
         return updatedEv;
-      }
-      return ev;
-    });
-    updateEventsState(updated);
-  };
-
-  // Handle Apply AI Analysis
-  const handleApplyAiAnalysis = (eventId: string, analysis: AiAnalysisData) => {
-    const updated = events.map((ev) => {
-      if (ev.id === eventId) {
-        return {
-          ...ev,
-          overallScore: Math.round(analysis.overallScore * 10) / 10,
-          ratingBreakdown: analysis.scores,
-          aiAnalysis: analysis,
-        };
       }
       return ev;
     });
@@ -319,11 +290,7 @@ export default function App() {
           setIsRateModalOpen(true);
         }}
         onOpenSubmitEvent={() => setIsSubmitEventOpen(true)}
-        onOpenAiAdvisor={() => setIsAiAdvisorOpen(true)}
-        onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
         onOpenMapView={() => setIsMapViewModalOpen(true)}
-        onOpenAutoSync={() => setIsAutoSyncOpen(true)}
-        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
         currentUser={currentUser}
         onOpenAuthModal={handleOpenAuthModal}
         onLogout={handleLogout}
@@ -331,134 +298,136 @@ export default function App() {
       />
 
       {/* Main Content */}
-      <main className="flex-1">
-        
-        {/* Hero Section */}
-        <HeroBanner
-          onOpenAiAdvisor={() => setIsAiAdvisorOpen(true)}
-          onOpenAddReview={() => {
-            setRateModalEvent(events[0] || null);
-            setIsRateModalOpen(true);
-          }}
-          onOpenMapView={() => setIsMapViewModalOpen(true)}
-          onSelectTopCategory={(tag) => setSearchQuery(tag)}
-        />
-
-        {/* Categories Bar & Sorting */}
-        <CategoryFilter
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          categoryCounts={categoryCounts}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
-
-        {/* Render either Map View or Grid View based on viewMode */}
-        {viewMode === 'map' ? (
-          <div className="py-6">
-            <EventMapView
+      <main className="flex-1 w-full bg-slate-50 relative pt-2">
+        <Routes>
+          <Route path="/tesis/:id" element={
+            <EventDetailWrapper 
               events={events}
-              onSelectEvent={setActiveDetailEvent}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              selectedCity={selectedCity}
-              onSelectCity={setSelectedCity}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+              onRateClick={(ev) => {
+                setRateModalEvent(ev);
+                setIsRateModalOpen(true);
+              }}
+              onLikeReview={handleLikeReview}
+              currentUser={currentUser}
+              setEditingEvent={setEditingEvent}
             />
-          </div>
-        ) : (
-          /* Events Grid Section */
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-500" />
-                  <span>
-                    {selectedCategory === 'Tümü' ? 'Tüm Spor Etkinlikleri' : `${selectedCategory} Etkinlikleri`}
-                  </span>
-                  <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-mono font-bold">
-                    {filteredEvents.length} Kayıt
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Kullanıcı oyları ve 5 boyutlu SporPuan skoruna göre sıralanmıştır
-                </p>
-              </div>
+          } />
+          
+          <Route path="/admin" element={
+            <AdminPanel 
+              events={events}
+              onDeleteEvent={handleDeleteEvent}
+              onEditEvent={setEditingEvent}
+              onUpdateEvent={handleUpdateEvent}
+            />
+          } />
+          
+          <Route path="/" element={
+            <>
+              {/* Hero Section */}
+              <HeroBanner
+                onOpenAddReview={() => {
+                  setRateModalEvent(events[0] || null);
+                  setIsRateModalOpen(true);
+                }}
+                onOpenMapView={() => setIsMapViewModalOpen(true)}
+                onSelectTopCategory={(tag) => setSearchQuery(tag)}
+              />
 
-              <button
-                onClick={() => setIsSubmitEventOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2 rounded-lg transition shadow-sm"
-              >
-                <PlusCircle className="w-4 h-4 text-white" />
-                <span>Etkinlik Kaydet</span>
-              </button>
-            </div>
+              {/* Categories Bar & Sorting */}
+              <CategoryFilter
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                categoryCounts={categoryCounts}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+              />
 
-            {filteredEvents.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <SearchX className="w-12 h-12 text-slate-400 mx-auto" />
-                <h3 className="text-lg font-bold text-slate-800">Aradığınız kriterlere uygun etkinlik bulunamadı</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  Farklı bir arama kelimesi yazabilir, şehir filtresini değiştirebilir veya kendi spor etkinliğinizi sporpuan'a ekleyebilirsiniz.
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('Tümü');
-                    setSelectedCity('Tüm Şehirler');
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition"
-                >
-                  Tüm Filtreleri Temizle
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onSelectEvent={setActiveDetailEvent}
-                    onRateClick={handleRateClick}
+              {/* Render either Map View or Grid View based on viewMode */}
+              {viewMode === 'map' ? (
+                <div className="py-6">
+                  <EventMapView
+                    events={events}
+                    onSelectEvent={(ev) => navigate('/tesis/' + ev.id)}
+                    selectedCategory={selectedCategory}
+                    onSelectCategory={setSelectedCategory}
+                    selectedCity={selectedCity}
+                    onSelectCity={setSelectedCity}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                   />
-                ))}
-              </div>
-            )}
+                </div>
+              ) : (
+                /* Events Grid Section */
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                  
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                        <span>
+                          {selectedCategory === 'Tümü' ? 'Tüm Sonuçlar' : selectedCategory}
+                        </span>
+                        <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-mono font-bold">
+                          {filteredEvents.length} Kayıt
+                        </span>
+                      </h2>
+                    </div>
 
-          </section>
-        )}
+                    <button
+                      onClick={() => setIsSubmitEventOpen(true)}
+                      className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2 rounded-lg transition shadow-sm"
+                    >
+                      <PlusCircle className="w-4 h-4 text-white" />
+                      <span>Kayıt Ekle</span>
+                    </button>
+                  </div>
 
-        {/* Leaderboard Section */}
-        <LeaderboardSection
-          events={events}
-          onSelectEvent={setActiveDetailEvent}
-        />
-
+                  {filteredEvents.length === 0 ? (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                      <SearchX className="w-12 h-12 text-slate-400 mx-auto" />
+                      <h3 className="text-lg font-bold text-slate-800">Aradığınız kriterlere uygun sonuç bulunamadı</h3>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto">
+                        Farklı bir arama kelimesi yazabilir, şehir filtresini değiştirebilir veya kendi spor kurumunuzu sporpuan'a ekleyebilirsiniz.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedCategory('Tümü');
+                          setSelectedCity('Tüm Şehirler');
+                        }}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition"
+                      >
+                        Tüm Filtreleri Temizle
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredEvents.map((event) => (
+                        <EventCard
+                          key={event.id}
+                          event={event}
+                          onSelectEvent={(ev) => {
+                            window.scrollTo(0, 0);
+                            navigate('/tesis/' + ev.id);
+                          }}
+                          onRateClick={handleRateClick}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
+            </>
+          } />
+        </Routes>
       </main>
 
       {/* Footer */}
       <Footer />
 
       {/* MODALS */}
-      {/* 1. Detail Modal */}
-      {activeDetailEvent && (
-        <EventDetailModal
-          event={activeDetailEvent}
-          onClose={() => setActiveDetailEvent(null)}
-          onOpenRateForm={(ev) => {
-            setRateModalEvent(ev);
-            setIsRateModalOpen(true);
-          }}
-          onLikeReview={handleLikeReview}
-          onOpenAiAdvisor={() => setIsAiAdvisorOpen(true)}
-          onOpenEditModal={(ev) => setEditingEvent(ev)}
-        />
-      )}
-
       {/* 2. Rate / Add Review Modal */}
       {isRateModalOpen && (
         <AddReviewModal
@@ -467,7 +436,7 @@ export default function App() {
           onClose={() => setIsRateModalOpen(false)}
           onSubmitReview={handleAddReview}
           currentUser={currentUser}
-          onOpenAuthModal={() => handleOpenAuthModal('user')}
+          onOpenAuthModal={() => handleOpenAuthModal()}
         />
       )}
 
@@ -476,41 +445,15 @@ export default function App() {
         <SubmitEventModal
           categories={[
             'Tümü',
-            'Futbol',
-            'Basketbol',
-            'Maraton & Koşu',
-            'Voleybol',
-            'Doğa & Extreme',
-            'Fitness & CrossFit',
-            'Motor Sporları',
-            'Çocuk & Gençlik',
+            'Spor Tesisleri',
+            'Spor Salonları',
+            'Spor Okulları',
+            'Spor Etkinlikleri',
           ]}
           onClose={() => setIsSubmitEventOpen(false)}
           onAddEvent={handleAddNewEvent}
           currentUser={currentUser}
-          onOpenAuthModal={() => handleOpenAuthModal('organizer')}
-        />
-      )}
-
-      {/* 4. AI Advisor Modal */}
-      {isAiAdvisorOpen && (
-        <AiAdvisorModal
-          events={events}
-          onClose={() => setIsAiAdvisorOpen(false)}
-          onApplyAiAnalysis={handleApplyAiAnalysis}
-        />
-      )}
-
-      {/* 5. Standalone Leaderboard Modal */}
-      {isLeaderboardOpen && (
-        <LeaderboardSection
-          events={events}
-          onSelectEvent={(ev) => {
-            setIsLeaderboardOpen(false);
-            setActiveDetailEvent(ev);
-          }}
-          isModal={true}
-          onCloseModal={() => setIsLeaderboardOpen(false)}
+          onOpenAuthModal={() => handleOpenAuthModal()}
         />
       )}
 
@@ -520,7 +463,8 @@ export default function App() {
           events={events}
           onSelectEvent={(ev) => {
             setIsMapViewModalOpen(false);
-            setActiveDetailEvent(ev);
+            window.scrollTo(0, 0);
+            navigate('/tesis/' + ev.id);
           }}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
@@ -533,27 +477,6 @@ export default function App() {
         />
       )}
 
-      {/* 7. Auto Sync Modal */}
-      <AutoSyncModal
-        isOpen={isAutoSyncOpen}
-        onClose={() => setIsAutoSyncOpen(false)}
-        events={events}
-        onSyncComplete={(newEvs) => updateEventsState([...events, ...newEvs])}
-        isAutoSyncEnabled={isAutoSyncEnabled}
-        setIsAutoSyncEnabled={setIsAutoSyncEnabled}
-      />
-
-      {/* 8. Event Management Admin Modal */}
-      {isAdminPanelOpen && (
-        <EventAdminModal
-          onClose={() => setIsAdminPanelOpen(false)}
-          events={events}
-          onDeleteEvent={handleDeleteEvent}
-          onEditEvent={(ev) => setEditingEvent(ev)}
-          onResetEvents={handleResetEvents}
-          onOpenSubmitEvent={() => setIsSubmitEventOpen(true)}
-        />
-      )}
 
       {/* 9. Edit Event Modal */}
       {editingEvent && (
@@ -563,14 +486,10 @@ export default function App() {
           onUpdateEvent={handleUpdateEvent}
           categories={[
             'Tümü',
-            'Futbol',
-            'Basketbol',
-            'Maraton & Koşu',
-            'Voleybol',
-            'Doğa & Extreme',
-            'Fitness & CrossFit',
-            'Motor Sporları',
-            'Çocuk & Gençlik',
+            'Spor Tesisleri',
+            'Spor Salonları',
+            'Spor Okulları',
+            'Spor Etkinlikleri',
           ]}
         />
       )}
@@ -580,7 +499,6 @@ export default function App() {
         <AuthModal
           onClose={() => setIsAuthModalOpen(false)}
           onLoginSuccess={handleLoginSuccess}
-          initialRole={authModalRole}
         />
       )}
 

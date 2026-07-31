@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SportsEvent, Review } from '../types';
-import { getScoreBadgeColor, getScoreLabel, RATING_CRITERIA_LABELS } from '../lib/scoreUtils';
+import { getScoreBadgeColor, getScoreLabel, CATEGORY_CRITERIA_MAP, calculateOverallScore } from '../lib/scoreUtils';
 import { 
   X, 
   Star, 
@@ -18,7 +18,8 @@ import {
   PlusCircle,
   Share2,
   Trophy,
-  Edit3
+  Edit3,
+  ArrowLeft
 } from 'lucide-react';
 
 interface EventDetailModalProps {
@@ -26,7 +27,6 @@ interface EventDetailModalProps {
   onClose: () => void;
   onOpenRateForm: (event: SportsEvent) => void;
   onLikeReview: (eventId: string, reviewId: string) => void;
-  onOpenAiAdvisor: () => void;
   onOpenEditModal?: (event: SportsEvent) => void;
 }
 
@@ -35,12 +35,11 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   onClose,
   onOpenRateForm,
   onLikeReview,
-  onOpenAiAdvisor,
   onOpenEditModal,
 }) => {
   if (!event) return null;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'aiReport'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
   const [copiedLink, setCopiedLink] = useState(false);
 
   const scoreBadge = getScoreBadgeColor(event.overallScore);
@@ -53,8 +52,8 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-200">
+    <div className="w-full animate-in fade-in duration-300 px-0 sm:px-4 pb-12">
+      <div className="bg-white w-full max-w-6xl mx-auto min-h-[calc(100vh-100px)] rounded-none sm:rounded-3xl shadow-md border border-slate-200 flex flex-col text-slate-800 overflow-hidden mt-0 sm:mt-6">
         
         {/* Header Image Banner */}
         <div className="relative h-64 sm:h-72 w-full shrink-0 bg-slate-100">
@@ -65,22 +64,19 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
 
-          {/* Close Button */}
+          {/* Close/Back Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-slate-900/80 hover:bg-slate-900 text-slate-200 hover:text-white rounded-full backdrop-blur-md transition border border-slate-700 z-10"
+            className="absolute top-4 left-4 flex items-center gap-1.5 px-4 py-2 bg-slate-900/80 hover:bg-slate-900 text-slate-200 hover:text-white rounded-full backdrop-blur-md transition border border-slate-700 z-10 font-bold text-xs shadow-md"
           >
-            <X className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
+            <span>Geri Dön</span>
           </button>
 
           {/* Top Badges */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+          <div className="absolute top-16 left-4 flex flex-wrap gap-2">
             <span className="bg-blue-600 text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
               {event.category}
-            </span>
-            <span className="bg-slate-900/80 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full border border-slate-700/80 flex items-center gap-1 font-bold">
-              <MapPin className="w-3.5 h-3.5 text-blue-400" />
-              {event.city}
             </span>
           </div>
 
@@ -98,6 +94,30 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
                 {event.title}
               </h2>
+              <div className="flex flex-col gap-1 mt-2">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-blue-400" />
+                    <span>{event.venue ? `${event.venue}, ${event.city}` : event.city}</span>
+                  </div>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((event.venue ? event.venue + ' ' : '') + event.city)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-300 hover:text-blue-200 underline underline-offset-2 flex items-center gap-1 bg-slate-900/50 px-2 py-0.5 rounded-full border border-slate-700/50"
+                  >
+                    Haritada Gör
+                  </a>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-200">
+                  <MessageSquare className="w-4 h-4 text-blue-400" />
+                  <div className="flex items-baseline gap-1.5">
+                    <strong className="text-white text-base">{event.overallScore.toFixed(1)}</strong>
+                    <span className="font-medium text-slate-200">{scoreLabel}</span>
+                    <span className="text-slate-400 text-xs ml-1">{event.reviews.length} yorum</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -105,7 +125,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 <button
                   onClick={() => onOpenEditModal(event)}
                   className="px-3 py-2.5 bg-slate-900/80 hover:bg-slate-900 text-white font-bold text-xs rounded-xl border border-slate-700 transition flex items-center gap-1.5"
-                  title="Etkinliği Düzenle"
+                  title="Düzenle"
                 >
                   <Edit3 className="w-4 h-4 text-blue-400" />
                   <span className="hidden sm:inline">Düzenle</span>
@@ -154,18 +174,6 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             <MessageSquare className="w-4 h-4" />
             <span>Kullanıcı İncelemeleri ({event.reviews.length})</span>
           </button>
-
-          <button
-            onClick={() => setActiveTab('aiReport')}
-            className={`px-4 py-2 rounded-xl transition flex items-center gap-2 ${
-              activeTab === 'aiReport'
-                ? 'bg-white text-blue-600 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>AI SporPuan Analiz Raporu</span>
-          </button>
         </div>
 
         {/* Modal Scrollable Body */}
@@ -208,18 +216,16 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     5 Boyutlu Değerlendirme Analizi
                   </h4>
 
-                  {Object.entries(event.ratingBreakdown).map(([key, val]) => {
-                    const score = typeof val === 'number' ? val : Number(val) || 0;
-                    const criterionKey = key as keyof typeof RATING_CRITERIA_LABELS;
-                    const meta = RATING_CRITERIA_LABELS[criterionKey];
+                  {(CATEGORY_CRITERIA_MAP[event.category] || []).map((crit) => {
+                    const score = event.ratingBreakdown[crit.key] || 0;
                     const percent = score * 10;
 
                     return (
-                      <div key={key} className="space-y-1">
+                      <div key={crit.key} className="space-y-1">
                         <div className="flex justify-between text-xs font-semibold">
                           <span className="flex items-center gap-1.5 text-slate-700">
-                            <span>{meta?.icon}</span>
-                            <span>{meta?.label}</span>
+                            <span className="w-2 h-2 rounded-full bg-blue-500 block"></span>
+                            <span>{crit.label}</span>
                           </span>
                           <span className="font-bold text-blue-600">{score.toFixed(1)} / 10</span>
                         </div>
@@ -233,55 +239,38 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     );
                   })}
                 </div>
-
               </div>
 
-              {/* Event Info Grid */}
+              {/* Info Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-blue-600 shrink-0" />
                   <div>
-                    <span className="text-slate-500 block font-medium">Tarih & Saat</span>
+                    <span className="text-slate-500 block font-medium">
+                      {event.category === 'Spor Etkinlikleri' ? 'Tarih & Saat' : 'Dönem / Çalışma Saatleri'}
+                    </span>
                     <span className="font-bold text-slate-900">{event.date} {event.time && `• ${event.time}`}</span>
                   </div>
                 </div>
-
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
                   <div>
-                    <span className="text-slate-500 block font-medium">Saha / Tesis</span>
+                    <span className="text-slate-500 block font-medium">Konum / Tesis</span>
                     <span className="font-bold text-slate-900 truncate block max-w-[180px]">{event.venue}</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
-                  <Ticket className="w-5 h-5 text-amber-500 shrink-0" />
-                  <div>
-                    <span className="text-slate-500 block font-medium">Bilet Fiyatı</span>
-                    <span className="font-bold text-slate-900">{event.ticketPriceRange}</span>
                   </div>
                 </div>
               </div>
 
               {/* Description & About */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
-                <h3 className="text-sm font-bold text-slate-900">Etkinlik Hakkında</h3>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {event.category === 'Spor Etkinlikleri' ? 'Etkinlik Hakkında' : 
+                   event.category === 'Spor Salonları' ? 'Salon Hakkında' :
+                   event.category === 'Spor Okulları' ? 'Okul Hakkında' : 'Tesis Hakkında'}
+                </h3>
                 <p className="text-sm text-slate-600 leading-relaxed font-normal">
                   {event.description}
                 </p>
-                {event.ticketUrl && (
-                  <div className="pt-2">
-                    <a
-                      href={event.ticketUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
-                    >
-                      <span>Resmi Bilet Satış / Kayıt Sayfasına Git</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                )}
               </div>
 
             </div>
@@ -306,7 +295,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               {event.reviews.length === 0 ? (
                 <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-200">
                   <MessageSquare className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                  <p className="text-slate-700 font-medium text-sm">Henüz bu etkinlik için yorum yapılmadı.</p>
+                  <p className="text-slate-700 font-medium text-sm">Henüz bu {event.category === 'Spor Okulları' ? 'okul' : event.category === 'Spor Salonları' ? 'salon' : event.category === 'Spor Tesisleri' ? 'tesis' : 'etkinlik'} için yorum yapılmadı.</p>
                   <p className="text-slate-500 text-xs mt-1">İlk değerlendirmeyi yapan spor sever sen ol!</p>
                 </div>
               ) : (
@@ -399,78 +388,6 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* TAB 3: AI REPORT */}
-          {activeTab === 'aiReport' && (
-            <div className="space-y-6">
-              
-              <div className="bg-blue-50/60 border border-blue-200 p-6 rounded-2xl space-y-4">
-                <div className="flex items-center justify-between border-b border-blue-200 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-base font-bold text-blue-950">
-                      Gemini Yapay Zeka Etkinlik Analisti Raporu
-                    </h3>
-                  </div>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full border border-blue-200 font-bold">
-                    Objektif Veri Analizi
-                  </span>
-                </div>
-
-                {event.aiAnalysis ? (
-                  <div className="space-y-4 text-sm">
-                    <p className="text-slate-800 leading-relaxed bg-white p-4 rounded-xl border border-slate-200 font-normal">
-                      {event.aiAnalysis.summary}
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
-                        <h4 className="font-bold text-emerald-900 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Öne Çıkan Artı Yönler
-                        </h4>
-                        <ul className="space-y-1 text-slate-700 text-xs list-disc list-inside font-medium">
-                          {event.aiAnalysis.pros.map((p, i) => <li key={i}>{p}</li>)}
-                        </ul>
-                      </div>
-
-                      <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl space-y-2">
-                        <h4 className="font-bold text-rose-900 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                          <XCircle className="w-4 h-4 text-rose-600" /> Geliştirilebilir Noktalar
-                        </h4>
-                        <ul className="space-y-1 text-slate-700 text-xs list-disc list-inside font-medium">
-                          {event.aiAnalysis.cons.map((c, i) => <li key={i}>{c}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-white border border-blue-200 rounded-xl space-y-1 text-xs">
-                      <strong className="text-blue-900 block font-bold">💡 Taraftar & Katılımcı Tavsiyesi:</strong>
-                      <p className="text-slate-700">{event.aiAnalysis.fanAdvice}</p>
-                    </div>
-
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-xs">
-                      <strong className="text-amber-900 block font-bold">🛠️ Organizatör İyileştirme Tavsiyesi:</strong>
-                      <p className="text-slate-700">{event.aiAnalysis.organizerAdvice}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 space-y-3">
-                    <p className="text-slate-700 text-sm font-medium">
-                      Bu etkinlik için yapay zeka analiz motorunu anlık çalıştırabilirsiniz.
-                    </p>
-                    <button
-                      onClick={onOpenAiAdvisor}
-                      className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl inline-flex items-center gap-2 transition shadow-sm"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>SporPuan AI Çalıştır</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
             </div>
           )}
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SportsEvent } from '../types';
-import { getScoreBadgeColor, getScoreLabel } from '../lib/scoreUtils';
+import { getScoreBadgeColor, getScoreLabel, CATEGORY_CRITERIA_MAP } from '../lib/scoreUtils';
 import { 
   MapPin, 
   Calendar, 
@@ -59,7 +59,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Featured Tag */}
         {event.featured && (
           <div className="absolute bottom-3 left-3 bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow">
-            Öne Çıkan Etkinlik
+            Öne Çıkan {event.category === 'Spor Okulları' ? 'Okul' : event.category === 'Spor Salonları' ? 'Salon' : event.category === 'Spor Tesisleri' ? 'Tesis' : 'Etkinlik'}
           </div>
         )}
 
@@ -109,20 +109,16 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
         </div>
 
-        {/* Mini 5-Criteria Preview Bar */}
+        {/* Dynamic Criteria Preview Bar */}
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-[11px]">
-          <div className="flex justify-between text-slate-700 font-medium">
-            <span>Organizasyon Kalitesi:</span>
-            <span className="font-bold text-blue-600">{event.ratingBreakdown.organization}/10</span>
-          </div>
-          <div className="flex justify-between text-slate-700 font-medium">
-            <span>Tribün Atmosferi:</span>
-            <span className="font-bold text-blue-600">{event.ratingBreakdown.atmosphere}/10</span>
-          </div>
-          <div className="flex justify-between text-slate-700 font-medium">
-            <span>Fiyat / Performans:</span>
-            <span className="font-bold text-blue-600">{event.ratingBreakdown.valueForMoney}/10</span>
-          </div>
+          {(CATEGORY_CRITERIA_MAP[event.category] || []).slice(0, 3).map(crit => (
+            <div key={crit.key} className="flex justify-between text-slate-700 font-medium">
+              <span>{crit.label}:</span>
+              <span className="font-bold text-blue-600">
+                {(event.ratingBreakdown[crit.key] || 0).toFixed(1)}/10
+              </span>
+            </div>
+          ))}
         </div>
 
         {/* Tags */}
@@ -144,11 +140,6 @@ export const EventCard: React.FC<EventCardProps> = ({
             <div className="flex items-center gap-1 font-semibold text-slate-700">
               <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
               <span>{event.reviewCount} Yorum</span>
-            </div>
-
-            <div className="flex items-center gap-1 text-slate-500">
-              <Ticket className="w-3.5 h-3.5 text-amber-500" />
-              <span className="truncate max-w-[100px] font-medium">{event.ticketPriceRange}</span>
             </div>
           </div>
 

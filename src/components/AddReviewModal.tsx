@@ -1,7 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { SportsEvent, RatingCriterion, Review, UserProfile } from '../types';
-import { calculateOverallScore, RATING_CRITERIA_LABELS, getScoreBadgeColor, getScoreLabel } from '../lib/scoreUtils';
+import React, { useState, useEffect, useMemo } from 'react';
+import { SportsEvent, RatingCriterion, Review, UserProfile, SportsCategory } from '../types';
+import { calculateOverallScore, CATEGORY_CRITERIA_MAP, getScoreBadgeColor, getScoreLabel } from '../lib/scoreUtils';
 import { X, Star, CheckCircle2, Trophy, Upload, ShieldCheck, AlertCircle, User, LogIn } from 'lucide-react';
+
+const PREDEFINED_PROS = [
+  "Harika Atmosfer", "Hızlı Giriş", "Temiz Tesis", "Uygun Fiyat", "Kolay Ulaşım", "İlgili Personel", "Güvenli Ortam", "Aileye Uygun"
+];
+
+const PREDEFINED_CONS = [
+  "Yetersiz Otopark", "Uzun Kuyruklar", "Pahalı", "Çok Kalabalık", "Ulaşım Zorluğu", "İlgisiz Personel", "Yetersiz Temizlik", "Kötü Ses Sistemi"
+];
+
+// Zıt/çelişen pro-con çiftleri (Biri seçildiğinde zıttı otomatik temizlenir)
+const OPPOSING_PAIRS: Record<string, string> = {
+  "Temiz Tesis": "Yetersiz Temizlik",
+  "Yetersiz Temizlik": "Temiz Tesis",
+  "Uygun Fiyat": "Pahalı",
+  "Pahalı": "Uygun Fiyat",
+  "Kolay Ulaşım": "Ulaşım Zorluğu",
+  "Ulaşım Zorluğu": "Kolay Ulaşım",
+  "İlgili Personel": "İlgisiz Personel",
+  "İlgisiz Personel": "İlgili Personel",
+  "Hızlı Giriş": "Uzun Kuyruklar",
+  "Uzun Kuyruklar": "Hızlı Giriş",
+};
 
 interface AddReviewModalProps {
   events: SportsEvent[];
@@ -23,20 +45,57 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
   const [targetEventId, setTargetEventId] = useState<string>(
     selectedEvent ? selectedEvent.id : events[0]?.id || ''
   );
+  
+  const targetEvent = useMemo(() => events.find((e) => e.id === targetEventId) || events[0], [events, targetEventId]);
 
   const [userName, setUserName] = useState(currentUser?.name || '');
-  const [scores, setScores] = useState<RatingCriterion>({
-    organization: 9,
-    atmosphere: 9,
-    valueForMoney: 8,
-    amenities: 8,
-    accessibility: 8,
-  });
+  const [scores, setScores] = useState<RatingCriterion>({});
+  
+  // Initialize scores based on category
+  useEffect(() => {
+    if (targetEvent) {
+      const criteria = CATEGORY_CRITERIA_MAP[targetEvent.category] || CATEGORY_CRITERIA_MAP['Spor Etkinlikleri'];
+      const initialScores: RatingCriterion = {};
+      criteria.forEach(c => initialScores[c.key] = 8); // Default 8
+      setScores(initialScores);
+    }
+  }, [targetEvent]);
+
   const [comment, setComment] = useState('');
-  const [prosText, setProsText] = useState('');
-  const [consText, setConsText] = useState('');
+  const [selectedPros, setSelectedPros] = useState<string[]>([]);
+  const [selectedCons, setSelectedCons] = useState<string[]>([]);
   const [verified, setVerified] = useState(true);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
+
+  const togglePro = (pro: string) => {
+    setSelectedPros(prev => {
+      const isSelecting = !prev.includes(pro);
+      if (isSelecting) {
+        // Zıt eksiyi temizle (ör. "Temiz Tesis" seçilince "Yetersiz Temizlik" kaldırılır)
+        const opposingCon = OPPOSING_PAIRS[pro];
+        if (opposingCon) {
+          setSelectedCons(cPrev => cPrev.filter(c => c !== opposingCon));
+        }
+        return [...prev, pro];
+      }
+      return prev.filter(p => p !== pro);
+    });
+  };
+
+  const toggleCon = (con: string) => {
+    setSelectedCons(prev => {
+      const isSelecting = !prev.includes(con);
+      if (isSelecting) {
+        // Zıt artıyı temizle (ör. "Yetersiz Temizlik" seçilince "Temiz Tesis" kaldırılır)
+        const opposingPro = OPPOSING_PAIRS[con];
+        if (opposingPro) {
+          setSelectedPros(pPrev => pPrev.filter(p => p !== opposingPro));
+        }
+        return [...prev, con];
+      }
+      return prev.filter(c => c !== con);
+    });
+  };
 
   useEffect(() => {
     if (currentUser?.name) {
@@ -50,11 +109,11 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
     }
   }, [selectedEvent]);
 
-  const currentScore = calculateOverallScore(scores);
+  const currentScore = calculateOverallScore(scores, targetEvent?.category || 'Spor Etkinlikleri');
   const scoreBadge = getScoreBadgeColor(currentScore);
   const scoreLabel = getScoreLabel(currentScore);
 
-  const handleCriterionChange = (key: keyof RatingCriterion, val: number) => {
+  const handleCriterionChange = (key: string, val: number) => {
     setScores((prev) => ({ ...prev, [key]: val }));
   };
 
@@ -66,15 +125,8 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
       return;
     }
 
-    const pros = prosText
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const cons = consText
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const pros = selectedPros;
+    const cons = selectedCons;
 
     const newReview: Review = {
       id: 'rev-' + Date.now(),
@@ -99,17 +151,17 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-3xl shadow-2xl flex flex-col text-slate-800 animate-in zoom-in-95 duration-200 overflow-hidden">
         
         {/* Modal Header */}
-        <div className="bg-slate-50 p-5 border-b border-slate-200 flex items-center justify-between">
+        <div className="bg-slate-50 p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold shadow-2xs">
               <Star className="w-5 h-5 text-blue-600 fill-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">Spor Etkinliği Puanla</h3>
+              <h3 className="text-lg font-extrabold text-slate-900">Etkinlik veya Tesis Puanla</h3>
               <p className="text-xs text-slate-500 font-medium">sporpuan standartlarına uygun 5 boyutlu objektif değerlendirme</p>
             </div>
           </div>
@@ -123,7 +175,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
         </div>
 
         {submittedSuccess ? (
-          <div className="p-10 text-center space-y-4">
+          <div className="p-10 text-center space-y-4 flex-1">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 border border-blue-200 rounded-full flex items-center justify-center mx-auto shadow-sm">
               <CheckCircle2 className="w-10 h-10" />
             </div>
@@ -133,7 +185,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[80vh]">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto">
             
             {/* User Account Status Banner */}
             {currentUser ? (
@@ -216,16 +268,15 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
                 5 Boyutlu Değerlendirme Skalası (1 - 10 Puan):
               </h4>
 
-              {Object.entries(RATING_CRITERIA_LABELS).map(([key, meta]) => {
-                const criterionKey = key as keyof RatingCriterion;
-                const val = scores[criterionKey];
+              {(CATEGORY_CRITERIA_MAP[targetEvent?.category || 'Spor Etkinlikleri'] || []).map((crit) => {
+                const val = scores[crit.key] || 8;
 
                 return (
-                  <div key={key} className="space-y-1">
+                  <div key={crit.key} className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                        <span>{meta.icon}</span>
-                        <span>{meta.label}</span>
+                        <span className="w-2 h-2 rounded-full bg-blue-500 block"></span>
+                        <span>{crit.label}</span>
                       </span>
                       <span className="font-black text-blue-600 text-sm bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
                         {val} / 10
@@ -238,11 +289,11 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
                       max="10"
                       step="1"
                       value={val}
-                      onChange={(e) => handleCriterionChange(criterionKey, parseInt(e.target.value))}
+                      onChange={(e) => handleCriterionChange(crit.key, parseInt(e.target.value))}
                       className="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
                     />
 
-                    <p className="text-[10px] text-slate-500 font-medium">{meta.desc}</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{crit.desc}</p>
                   </div>
                 );
               })}
@@ -294,31 +345,49 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
             </div>
 
             {/* Pros & Cons Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
+              <div className="space-y-3">
                 <label className="font-bold text-emerald-700 block">
-                  (+) Öne Çıkan Artılar (Virgülle ayırın):
+                  (+) Öne Çıkan Artılar:
                 </label>
-                <input
-                  type="text"
-                  placeholder="Örn: Harika atmosfer, hızlı giriş, temiz tuvalet"
-                  value={prosText}
-                  onChange={(e) => setProsText(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-normal"
-                />
+                <div className="flex flex-wrap gap-2">
+                  {PREDEFINED_PROS.map(pro => (
+                    <button
+                      key={pro}
+                      type="button"
+                      onClick={() => togglePro(pro)}
+                      className={`px-3 py-1.5 rounded-full border transition font-semibold ${
+                        selectedPros.includes(pro)
+                          ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {pro}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-3">
                 <label className="font-bold text-rose-700 block">
-                  (-) Eleştiri / Eksiler (Virgülle ayırın):
+                  (-) Eleştiri / Eksiler:
                 </label>
-                <input
-                  type="text"
-                  placeholder="Örn: Otopark yetersizdi, kantinde sıra vardı"
-                  value={consText}
-                  onChange={(e) => setConsText(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-normal"
-                />
+                <div className="flex flex-wrap gap-2">
+                  {PREDEFINED_CONS.map(con => (
+                    <button
+                      key={con}
+                      type="button"
+                      onClick={() => toggleCon(con)}
+                      className={`px-3 py-1.5 rounded-full border transition font-semibold ${
+                        selectedCons.includes(con)
+                          ? 'bg-rose-100 border-rose-300 text-rose-800'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {con}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

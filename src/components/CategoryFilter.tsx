@@ -26,14 +26,10 @@ interface CategoryFilterProps {
 
 const CATEGORIES_CONFIG: { category: SportsCategory; icon: React.ReactNode }[] = [
   { category: 'Tümü', icon: <Layers className="w-4 h-4" /> },
-  { category: 'Futbol', icon: <Activity className="w-4 h-4" /> },
-  { category: 'Basketbol', icon: <Trophy className="w-4 h-4" /> },
-  { category: 'Maraton & Koşu', icon: <Flame className="w-4 h-4" /> },
-  { category: 'Voleybol', icon: <Zap className="w-4 h-4" /> },
-  { category: 'Doğa & Extreme', icon: <Compass className="w-4 h-4" /> },
-  { category: 'Fitness & CrossFit', icon: <Dumbbell className="w-4 h-4" /> },
-  { category: 'Motor Sporları', icon: <Flag className="w-4 h-4" /> },
-  { category: 'Çocuk & Gençlik', icon: <Baby className="w-4 h-4" /> },
+  { category: 'Spor Tesisleri', icon: <MapPin className="w-4 h-4" /> },
+  { category: 'Spor Salonları', icon: <Dumbbell className="w-4 h-4" /> },
+  { category: 'Spor Okulları', icon: <Baby className="w-4 h-4" /> },
+  { category: 'Spor Etkinlikleri', icon: <Trophy className="w-4 h-4" /> },
 ];
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({

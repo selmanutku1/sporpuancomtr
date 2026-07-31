@@ -20,7 +20,7 @@ export const SubmitEventModal: React.FC<SubmitEventModalProps> = ({
   onOpenAuthModal,
 }) => {
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<SportsCategory>('Futbol');
+  const [category, setCategory] = useState<SportsCategory>('Spor Etkinlikleri');
   const [city, setCity] = useState('İstanbul');
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState('');
@@ -29,7 +29,6 @@ export const SubmitEventModal: React.FC<SubmitEventModalProps> = ({
     currentUser?.role === 'organizer' ? (currentUser.organizationName || currentUser.name) : ''
   );
   const [description, setDescription] = useState('');
-  const [ticketPriceRange, setTicketPriceRange] = useState('₺200 - ₺800');
   const [image, setImage] = useState(DEFAULT_EVENT_IMAGE);
   const [isCustomUploaded, setIsCustomUploaded] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
@@ -160,7 +159,6 @@ export const SubmitEventModal: React.FC<SubmitEventModalProps> = ({
       organizerVerified: true,
       image,
       description: description.trim() || 'SporPuan topluluğu için kayıt edilmiş yeni spor etkinliği.',
-      ticketPriceRange,
       overallScore: 8.5,
       ratingBreakdown: {
         organization: 8.5,
@@ -341,16 +339,6 @@ export const SubmitEventModal: React.FC<SubmitEventModalProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">Bilet Fiyat Aralığı</label>
-                <input
-                  type="text"
-                  placeholder="Örn: ₺300 - ₺1.200 Veya Ücretsiz"
-                  value={ticketPriceRange}
-                  onChange={(e) => setTicketPriceRange(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-normal"
-                />
-              </div>
             </div>
 
             {/* Event Image Upload Section (Standardized 16:9 Aspect Ratio) */}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Trophy, 
   Search, 
@@ -7,13 +8,12 @@ import {
   Sparkles, 
   BarChart3, 
   Star,
+  Check,
   CheckCircle2,
   Share2,
   Map,
   ShieldCheck,
-  Maximize2,
-  Minimize2,
-  RefreshCw,
+
   Settings,
   Menu,
   X,
@@ -31,13 +31,9 @@ interface HeaderProps {
   setSelectedCategory: (cat: SportsCategory) => void;
   onOpenAddReview: () => void;
   onOpenSubmitEvent: () => void;
-  onOpenAiAdvisor: () => void;
-  onOpenLeaderboard: () => void;
   onOpenMapView: () => void;
-  onOpenAutoSync?: () => void;
-  onOpenAdminPanel?: () => void;
   currentUser: UserProfile | null;
-  onOpenAuthModal: (role?: UserRole) => void;
+  onOpenAuthModal: () => void;
   onLogout: () => void;
   cities: string[];
 }
@@ -50,39 +46,15 @@ export const Header: React.FC<HeaderProps> = ({
   setSelectedCategory,
   onOpenAddReview,
   onOpenSubmitEvent,
-  onOpenAiAdvisor,
-  onOpenLeaderboard,
   onOpenMapView,
-  onOpenAutoSync,
-  onOpenAdminPanel,
   currentUser,
   onOpenAuthModal,
   onLogout,
   cities,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleFsChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error("Tam ekran başlatılamadı:", err);
-      });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  };
+  const navigate = useNavigate();
 
   const handleShareBrand = () => {
     navigator.clipboard.writeText('https://sporpuan.com');
@@ -95,6 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
     setSelectedCity('Tüm Şehirler');
     setSelectedCategory('Tümü');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate('/');
   };
 
   return (
@@ -107,20 +80,12 @@ export const Header: React.FC<HeaderProps> = ({
               sporpuan
             </span>
             <span className="hidden sm:inline">
-              Türkiye'nin Bağımsız Spor Etkinliği Puanlama & İnceleme Platformu
+              Türkiye'nin Bağımsız Spor Puanlama & İnceleme Platformu
             </span>
             <span className="sm:hidden text-[11px] font-semibold text-blue-950 truncate max-w-[170px]">
-              Spor Etkinlik Puanlama
+              Spor Puanlama
             </span>
           </div>
-
-          <button 
-            onClick={onOpenAiAdvisor}
-            className="inline-flex items-center gap-1 bg-white hover:bg-blue-100 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-bold transition text-[11px] shadow-2xs shrink-0"
-          >
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            <span>Sporpuan AI</span>
-          </button>
         </div>
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -129,24 +94,16 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Brand Logo - Clean Soft Logo */}
             <div className="flex items-center gap-2 shrink-0">
               <button onClick={handleResetHome} className="flex items-center gap-2.5 group text-left">
-                <img 
-                  src="/sporpuan-logo.svg" 
-                  alt="SporPuan Logo" 
-                  className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-200 object-cover"
-                  onError={(e) => {
-                    // Fallback to Icon if image load fails
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                <div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200">
+                  <Star className="w-full h-full text-blue-600 fill-blue-600" />
+                  <Check className="absolute w-1/2 h-1/2 text-white stroke-[3]" />
+                </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1">
-                    <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
-                      spor<span className="text-blue-600">puan</span>
+                    <span className="font-['Red_Hat_Display',_sans-serif] font-normal text-[#0056b3] text-[22px] leading-[30px]">
+                      sporpuan
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 -mt-1 hidden sm:block tracking-wide">
-                    ETKİNLİK PUANLAMA
-                  </span>
                 </div>
               </button>
             </div>
@@ -186,34 +143,6 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Desktop Right Actions Buttons */}
             <div className="hidden md:flex items-center gap-2">
               
-              {/* Fullscreen Toggle Button */}
-              <button
-                onClick={toggleFullscreen}
-                title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Moduna Geç'}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
-              >
-                {isFullscreen ? (
-                  <>
-                    <Minimize2 className="w-4 h-4 text-slate-600" />
-                    <span className="hidden xl:inline">Normal Ekran</span>
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 className="w-4 h-4 text-slate-600" />
-                    <span className="hidden xl:inline">Tam Ekran</span>
-                  </>
-                )}
-              </button>
-
-              {/* AutoSync Button */}
-              <button
-                onClick={onOpenAutoSync}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"
-              >
-                <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
-                <span>Canlı Entegrasyon</span>
-              </button>
-
               <button
                 onClick={onOpenMapView}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
@@ -223,39 +152,12 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               <button
-                onClick={onOpenLeaderboard}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
-              >
-                <BarChart3 className="w-3.5 h-3.5 text-amber-500" />
-                <span>Sıralama</span>
-              </button>
-
-              <button
                 onClick={onOpenAddReview}
                 className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm active:scale-95"
               >
                 <Star className="w-3.5 h-3.5 fill-white text-white" />
                 <span>Puanla</span>
               </button>
-
-              <button
-                onClick={onOpenSubmitEvent}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
-              >
-                <PlusCircle className="w-3.5 h-3.5 text-blue-600" />
-                <span>Etkinlik Ekle</span>
-              </button>
-
-              {onOpenAdminPanel && (
-                <button
-                  onClick={onOpenAdminPanel}
-                  title="Sistem Etkinlik Yönetimi"
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
-                >
-                  <Settings className="w-3.5 h-3.5 text-slate-600" />
-                  <span className="hidden xl:inline">Yönetim</span>
-                </button>
-              )}
 
               {/* Auth User Profile Section */}
               {currentUser ? (
@@ -270,9 +172,18 @@ export const Header: React.FC<HeaderProps> = ({
                       {currentUser.name}
                     </span>
                     <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wide">
-                      {currentUser.role === 'organizer' ? 'Organizatör' : 'Sporsever'}
+                      {currentUser.role === 'admin' ? 'Yönetici' : currentUser.role === 'organizer' ? 'Organizatör' : 'Sporsever'}
                     </span>
                   </div>
+                  {currentUser.role === 'admin' && (
+                    <button
+                      onClick={() => navigate('/admin')}
+                      title="Yönetici Paneli"
+                      className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   <button
                     onClick={onLogout}
                     title="Oturumu Kapat"
@@ -284,22 +195,16 @@ export const Header: React.FC<HeaderProps> = ({
               ) : (
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => onOpenAuthModal('user')}
-                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 hover:border-blue-300 rounded-xl transition"
+                    onClick={() => onOpenAuthModal()}
+                    className="flex items-center gap-2.5 px-4 py-1.5 text-left bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-blue-200 rounded-full transition-colors active:scale-95 shadow-sm"
                   >
-                    <User className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Giriş / Üyelik</span>
+                    <div className="flex flex-col -space-y-0.5">
+                      <span className="text-sm font-black text-slate-800 tracking-tight leading-tight">Giriş Yap</span>
+                      <span className="text-xs font-medium text-slate-500 leading-tight">veya üye ol</span>
+                    </div>
                   </button>
                 </div>
               )}
-
-              <button
-                onClick={handleShareBrand}
-                title="sporpuan Bağlantısını Kopyala"
-                className="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-200"
-              >
-                {copiedLink ? <CheckCircle2 className="w-4 h-4 text-blue-600" /> : <Share2 className="w-4 h-4" />}
-              </button>
             </div>
 
             {/* Mobile Header Actions */}
@@ -383,12 +288,11 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <button
                 onClick={() => {
-                  onOpenAuthModal('user');
+                  onOpenAuthModal();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center transition"
               >
-                <User className="w-4 h-4 text-white" />
                 <span>Giriş Yap / Üye Ol</span>
               </button>
             )}
@@ -405,73 +309,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <Map className="w-4 h-4 text-blue-400" />
                 <span>Harita Modu</span>
               </button>
-
-              <button
-                onClick={() => {
-                  onOpenLeaderboard();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200"
-              >
-                <BarChart3 className="w-4 h-4 text-amber-400" />
-                <span>Sıralama</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  onOpenSubmitEvent();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200"
-              >
-                <PlusCircle className="w-4 h-4 text-emerald-400" />
-                <span>Etkinlik Ekle</span>
-              </button>
-
-              {onOpenAutoSync && (
-                <button
-                  onClick={() => {
-                    onOpenAutoSync();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200"
-                >
-                  <RefreshCw className="w-4 h-4 text-cyan-400" />
-                  <span>Canlı Senkron</span>
-                </button>
-              )}
-
-              {onOpenAdminPanel && (
-                <button
-                  onClick={() => {
-                    onOpenAdminPanel();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 col-span-2"
-                >
-                  <Settings className="w-4 h-4 text-purple-400" />
-                  <span>Sistem Yönetim Paneli</span>
-                </button>
-              )}
             </div>
 
-            <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800">
-              <button
-                onClick={toggleFullscreen}
-                className="flex items-center gap-1 text-slate-300 hover:text-white"
-              >
-                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                <span>{isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Yap'}</span>
-              </button>
-
-              <button
-                onClick={handleShareBrand}
-                className="flex items-center gap-1 text-slate-300 hover:text-white"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>{copiedLink ? 'Kopyalandı!' : 'Platformu Paylaş'}</span>
-              </button>
-            </div>
           </div>
         )}
       </header>
@@ -511,7 +350,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <button
-          onClick={() => onOpenAuthModal(currentUser ? 'user' : 'user')}
+          onClick={() => onOpenAuthModal()}
           className="flex flex-col items-center justify-center py-1 px-3 text-slate-600 hover:text-blue-600 transition"
         >
           {currentUser ? (

@@ -50,13 +50,10 @@ function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: num
 // Category Badge Color Helper for Pins
 const getCategoryBadgeBg = (cat: SportsCategory) => {
   switch (cat) {
-    case 'Futbol': return '#10b981'; // emerald
-    case 'Basketbol': return '#f59e0b'; // amber
-    case 'Maraton & Koşu': return '#06b6d4'; // cyan
-    case 'Voleybol': return '#8b5cf6'; // purple
-    case 'Doğa & Extreme': return '#84cc16'; // lime
-    case 'Motor Sporları': return '#ef4444'; // red
-    case 'Fitness & CrossFit': return '#ec4899'; // pink
+    case 'Spor Tesisleri': return '#10b981'; // emerald
+    case 'Spor Salonları': return '#f59e0b'; // amber
+    case 'Spor Okulları': return '#8b5cf6'; // purple
+    case 'Spor Etkinlikleri': return '#06b6d4'; // cyan
     default: return '#3b82f6'; // blue
   }
 };
@@ -249,9 +246,6 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
           <p style="font-size: 11px; color: #64748b; margin: 0 0 6px 0;">
             📍 ${ev.venue} (${ev.city})
           </p>
-          <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 8px;">
-            🎟️ ${ev.ticketPriceRange}
-          </div>
           <button id="btn-detail-${ev.id}" style="
             width: 100%;
             background: linear-gradient(135deg, #10b981, #14b8a6);
@@ -295,7 +289,13 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
   // Handle Find My Location
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
-      setLocationError('Tarayıcınız konum servislerini desteklemiyor.');
+      const fallbackLat = 41.0082;
+      const fallbackLng = 28.9784;
+      setUserCoords({ lat: fallbackLat, lng: fallbackLng });
+      const map = mapInstanceRef.current;
+      if (map) {
+        map.flyTo([fallbackLat, fallbackLng], 12, { animate: true });
+      }
       return;
     }
 
@@ -343,7 +343,15 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
       },
       (err) => {
         setIsLocating(false);
-        setLocationError('Konum izni alınamadı veya zaman aşımına uğradı. Şehir filtresini kullanabilirsiniz.');
+        // Fallback to a default central location (e.g., Istanbul) if location fails
+        const fallbackLat = 41.0082;
+        const fallbackLng = 28.9784;
+        setUserCoords({ lat: fallbackLat, lng: fallbackLng });
+        
+        const map = mapInstanceRef.current;
+        if (map) {
+          map.flyTo([fallbackLat, fallbackLng], 12, { animate: true });
+        }
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
@@ -381,13 +389,13 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
             className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-2xs transition active:scale-95 disabled:opacity-50"
           >
             <LocateFixed className={`w-4 h-4 ${isLocating ? 'animate-spin' : ''}`} />
-            <span>{isLocating ? 'Konum Alınıyor...' : 'Konumumu Bul & Yakındaki Etkinlikler'}</span>
+            <span>{isLocating ? 'Konum Alınıyor...' : 'Konumumu Bul & Yakındakiler'}</span>
           </button>
 
           {userCoords && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>Konumunuz Aktif • {eventsWithDistance.filter(e => e.distanceKm !== null).length} Etkinlik Mesafesi Hesaplandı</span>
+              <span>Konumunuz Aktif • {eventsWithDistance.filter(e => e.distanceKm !== null).length} Kayıt Mesafesi Hesaplandı</span>
             </div>
           )}
 
@@ -430,7 +438,7 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
               }}
               className="bg-transparent text-slate-800 font-bold focus:outline-none cursor-pointer"
             >
-              {['Tümü', 'Futbol', 'Basketbol', 'Maraton & Koşu', 'Voleybol', 'Doğa & Extreme', 'Fitness & CrossFit', 'Motor Sporları', 'Çocuk & Gençlik'].map((cat) => (
+              {['Tümü', 'Spor Tesisleri', 'Spor Salonları', 'Spor Okulları', 'Spor Etkinlikleri'].map((cat) => (
                 <option key={cat} value={cat} className="bg-white text-slate-800">
                   {cat}
                 </option>
@@ -469,7 +477,7 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
           {/* Floating Badge Indicator */}
           <div className="absolute bottom-4 left-4 z-20 bg-white/90 border border-slate-200 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] text-slate-700 flex items-center gap-2 shadow-md">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-            <span>Haritada <strong>{filteredEvents.length}</strong> Spor Etkinliği Listeleniyor</span>
+            <span>Haritada <strong>{filteredEvents.length}</strong> Kayıt Listeleniyor</span>
           </div>
         </div>
 
@@ -480,11 +488,11 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
             <div className="flex items-center gap-2">
               <Compass className="w-4 h-4 text-blue-600" />
               <h3 className="font-extrabold text-sm text-slate-900">
-                {userCoords ? 'Yakındaki Etkinlikler' : 'Harita Etkinlik Listesi'}
+                {userCoords ? 'Yakındakiler' : 'Harita Listesi'}
               </h3>
             </div>
             <span className="text-[10px] bg-blue-50 text-blue-700 font-mono font-bold px-2 py-0.5 rounded-full border border-blue-200">
-              {eventsWithDistance.length} Etkinlik
+              {eventsWithDistance.length} Kayıt
             </span>
           </div>
 
@@ -544,7 +552,7 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
                       e.stopPropagation();
                       onSelectEvent(ev);
                     }}
-                    title="Etkinlik Detayları & Puan Tablosu"
+                    title="Detaylar & Puan Tablosu"
                     className="p-2 bg-white hover:bg-blue-600 hover:text-white text-slate-600 rounded-xl transition shrink-0 border border-slate-200 shadow-2xs"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -572,7 +580,7 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
                 <MapPin className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900">İnteraktif Spor Etkinliği Haritası</h3>
+                <h3 className="text-xl font-black text-slate-900">Sporpuan Haritası</h3>
                 <p className="text-xs text-slate-500 font-medium">sporpuan Türkiye spor tesisleri ve etkinlik lokasyonları</p>
               </div>
             </div>
