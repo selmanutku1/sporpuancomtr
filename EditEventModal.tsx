@@ -1,4 +1,0 @@
-@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&display=swap');
-@import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
-

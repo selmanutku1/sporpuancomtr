@@ -304,10 +304,55 @@ export const Header: React.FC<HeaderProps> = ({
                   onOpenMapView();
                   setIsMobileMenuOpen(false);
                 }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200"
+                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95"
               >
                 <Map className="w-4 h-4 text-blue-400" />
                 <span>Harita Modu</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenAddReview();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95"
+              >
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span>Değerlendir / Puanla</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenSubmitEvent();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95"
+              >
+                <PlusCircle className="w-4 h-4 text-emerald-400" />
+                <span>Yeni Kayıt Ekle</span>
+              </button>
+
+              {currentUser?.role === 'admin' && (
+                <button
+                  onClick={() => {
+                    navigate('/admin');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="p-3 bg-blue-950/60 hover:bg-blue-900/60 border border-blue-800/80 rounded-xl flex items-center gap-2 text-blue-200 transition active:scale-95"
+                >
+                  <ShieldCheck className="w-4 h-4 text-blue-400" />
+                  <span>Yönetici Paneli</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  handleShareBrand();
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95 col-span-2"
+              >
+                {copiedLink ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-slate-400" />}
+                <span>{copiedLink ? 'Bağlantı Kopyalandı!' : 'sporpuan Bağlantısını Kopyala'}</span>
               </button>
             </div>
 
@@ -319,7 +364,7 @@ export const Header: React.FC<HeaderProps> = ({
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-xl md:hidden px-2 py-1.5 flex items-center justify-around">
         <button
           onClick={handleResetHome}
-          className="flex flex-col items-center justify-center py-1 px-3 text-slate-600 hover:text-blue-600 transition"
+          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
         >
           <Home className="w-5 h-5 text-slate-700" />
           <span className="text-[10px] font-bold mt-0.5">Keşfet</span>
@@ -327,7 +372,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenMapView}
-          className="flex flex-col items-center justify-center py-1 px-3 text-slate-600 hover:text-blue-600 transition"
+          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
         >
           <Map className="w-5 h-5 text-slate-700" />
           <span className="text-[10px] font-bold mt-0.5">Harita</span>
@@ -335,15 +380,15 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenAddReview}
-          className="flex flex-col items-center justify-center py-1.5 px-4 bg-blue-600 text-white rounded-2xl shadow-md -mt-3 border-2 border-white transition active:scale-95"
+          className="flex flex-col items-center justify-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg -mt-3 border-2 border-white ring-4 ring-blue-100 transition active:scale-95"
         >
           <Star className="w-5 h-5 fill-white text-white" />
-          <span className="text-[10px] font-extrabold mt-0.5">Puanla</span>
+          <span className="text-[10px] font-black mt-0.5">Puanla</span>
         </button>
 
         <button
           onClick={onOpenSubmitEvent}
-          className="flex flex-col items-center justify-center py-1 px-3 text-slate-600 hover:text-blue-600 transition"
+          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
         >
           <PlusCircle className="w-5 h-5 text-slate-700" />
           <span className="text-[10px] font-bold mt-0.5">Ekle</span>
@@ -351,13 +396,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={() => onOpenAuthModal()}
-          className="flex flex-col items-center justify-center py-1 px-3 text-slate-600 hover:text-blue-600 transition"
+          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
         >
           {currentUser ? (
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-5 h-5 rounded-full object-cover border border-blue-600"
+              className="w-5 h-5 rounded-full object-cover border-2 border-blue-600"
             />
           ) : (
             <User className="w-5 h-5 text-slate-700" />

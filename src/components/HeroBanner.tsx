@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trophy, ShieldCheck, Star, Sparkles, MapPin, Activity, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface HeroBannerProps {
   onOpenAddReview: () => void;
@@ -7,11 +8,26 @@ interface HeroBannerProps {
   onSelectTopCategory: (cat: string) => void;
 }
 
+const SLIDING_WORDS = [
+  "Spor Tesislerini",
+  "Spor Okullarını",
+  "Spor Etkinliklerini"
+];
+
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   onOpenAddReview,
   onOpenMapView,
   onSelectTopCategory,
 }) => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % SLIDING_WORDS.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="relative bg-gradient-to-b from-blue-50/70 via-slate-50 to-white border-b border-slate-200 text-slate-800 pt-10 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
@@ -24,9 +40,22 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               <span>Türkiye'nin Spor Değerlendirme Platformu</span>
             </div>
 
-            <h1 className="font-['Red_Hat_Display',_sans-serif] font-bold text-[#23262f] text-[48px] sm:text-[54px] leading-[1.15]">
-              Spor Tesislerini, Spor Okullarını, Etkinlikleri <br className="hidden sm:inline" />
-              <span className="text-blue-600">
+            <h1 className="font-['Red_Hat_Display',_sans-serif] font-bold text-[#23262f] text-[26px] xs:text-[30px] sm:text-[44px] lg:text-[54px] leading-[1.25] sm:leading-[1.2]">
+              <span className="block h-[1.3em] relative overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={SLIDING_WORDS[index]}
+                    initial={{ y: -40, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 40, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "circOut" }}
+                    className="absolute left-0 top-0 text-blue-600 font-extrabold whitespace-nowrap"
+                  >
+                    {SLIDING_WORDS[index]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+              <span className="block text-[#23262f] font-extrabold mt-0.5 sm:mt-1">
                 Puanla, Yorumla, Keşfet!
               </span>
             </h1>
