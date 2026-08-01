@@ -209,15 +209,6 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Mobile Header Actions */}
             <div className="flex md:hidden items-center gap-1.5">
-              {/* Mobile Primary Action Button */}
-              <button
-                onClick={onOpenAddReview}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-xs"
-              >
-                <Star className="w-3.5 h-3.5 fill-white text-white" />
-                <span>Puanla</span>
-              </button>
-
               {/* Mobile Menu Drawer Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
