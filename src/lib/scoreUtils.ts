@@ -1,22 +1,41 @@
 import { RatingCriterion, SportsCategory } from '../types';
 
-export const COMMON_CRITERIA = [
-  { key: 'kaliteIcerik', label: 'Kalite & İçerik', desc: 'Eğitim, ekipman, organizasyon ve altyapı', weight: 0.4 },
-  { key: 'guvenlik', label: 'Güvenlik', desc: 'Sağlık, ilk yardım ve çevresel önlemler', weight: 0.2 },
-  { key: 'fiyatDeger', label: 'Fiyat / Değer', desc: 'Şeffaflık, maliyet-fayda dengesi', weight: 0.2 },
-  { key: 'deneyimIletisim', label: 'Deneyim & İletişim', desc: 'Personel ilgisi, geri bildirim ve atmosfer', weight: 0.2 }
-];
-
 export const CATEGORY_CRITERIA_MAP: Record<SportsCategory, { key: string; label: string; desc: string; weight: number }[]> = {
   'Tümü': [],
-  'Spor Tesisleri': COMMON_CRITERIA,
-  'Spor Salonları': COMMON_CRITERIA,
-  'Spor Okulları': COMMON_CRITERIA,
-  'Spor Etkinlikleri': COMMON_CRITERIA
+  'Spor Tesisleri': [
+    { key: 'zeminSaha', label: 'Zemin & Saha Kalitesi', desc: 'Zemin, çim/parke/halı kalitesi, düzgünlük ve saha bakımı', weight: 0.30 },
+    { key: 'soyunmaHijyen', label: 'Soyunma Odası & Hijyen', desc: 'Duş temizliği, soyunma alanları, havalandırma ve hijyen', weight: 0.25 },
+    { key: 'ekipmanAydinlatma', label: 'Aydınlatma & Ekipman', desc: 'Saha ışıklandırması, kale/file/potası ve altyapı sağlamlığı', weight: 0.20 },
+    { key: 'ulasimOtopark', label: 'Ulaşım & Otopark', desc: 'Lokasyon erişilebilirliği, toplu taşıma ve park alanı kapasitesi', weight: 0.15 },
+    { key: 'fiyatHizmet', label: 'Kiralama Ücreti & Personel', desc: 'Kiralama fiyatı/performansı ve tesis görevlilerinin ilgisi', weight: 0.10 },
+  ],
+  'Spor Salonları': [
+    { key: 'ekipmanCesit', label: 'Ekipman & Alet Çeşitliliği', desc: 'Serbest ağırlık, kardiyo makineleri ve aletlerin güncelliği', weight: 0.30 },
+    { key: 'hijyenFerahlik', label: 'Hijyen & İklimlendirme', desc: 'Salon temizliği, duşlar, klima/havalandırma ve koku yönetimi', weight: 0.25 },
+    { key: 'antrenorDestegi', label: 'Antrenör & Eğitmen Desteği', desc: 'Salon koçlarının ilgisi, form yönlendirmesi ve profesyonelliği', weight: 0.20 },
+    { key: 'yogunlukAtmosfer', label: 'Yoğunluk & Çalışma Alanı', desc: 'Yoğun saatlerdeki kalabalık, alet bekleme süresi ve motivasyon', weight: 0.15 },
+    { key: 'fiyatUyelik', label: 'Üyelik Fiyatı & Koşulları', desc: 'Aylık/yıllık paket maliyeti ve üyelik dondurma/iptal esnekliği', weight: 0.10 },
+  ],
+  'Spor Okulları': [
+    { key: 'egitmenKalitesi', label: 'Eğitmen & Pedagojik Kalite', desc: 'Antrenörlerin uzmanlığı, sabrı ve çocuk/öğrenci iletişimi', weight: 0.35 },
+    { key: 'mufredatGelisim', label: 'Müfredat & Sporcu Gelişimi', desc: 'Sistematik antrenman programı, disiplin ve gelişim takibi', weight: 0.25 },
+    { key: 'guvenlikDisiplin', label: 'Güvenlik & Sağlık Önlemleri', desc: 'İlk yardım hazırlığı, antrenman güvenliği ve veli bilgilendirmesi', weight: 0.20 },
+    { key: 'tesisEkipman', label: 'Tesis & Yaşa Uygun Ekipman', desc: 'Öğrenci yaş grubuna uygun malzeme, saha boyutu ve soyunma alanı', weight: 0.10 },
+    { key: 'fiyatIletisim', label: 'Fiyat & Veli İletişimi', desc: 'Eğitim ücretlerinin makullüğü ve düzenli bilgilendirme', weight: 0.10 },
+  ],
+  'Spor Etkinlikleri': [
+    { key: 'organizasyonAkis', label: 'Organizasyon & Akış', desc: 'Kayıt/bilet kontrolü, zamanlama, yönlendirmeler ve alan düzeni', weight: 0.30 },
+    { key: 'parkurGuvenlik', label: 'Parkur & Güvenlik Önlemleri', desc: 'Parkur/saha emniyeti, yön işaretleri, trafik kontrolü ve sağlık ekibi', weight: 0.25 },
+    { key: 'kitIkram', label: 'Etkinlik Kiti & Su/İkramlar', desc: 'Tiştört/madalya kalitesi, parkur içi su/beslenme istasyonları', weight: 0.20 },
+    { key: 'atmosferSeyir', label: 'Atmosfer & Seyir Zevki', desc: 'Sunum, ses/müzik sistemi, seyirci ve katılımcı coşkusu', weight: 0.15 },
+    { key: 'biletFiyat', label: 'Katılım Ücreti / Değer', desc: 'Bilet/katılım ücretinin sunduğu organizasyon kalitesi ile uyumu', weight: 0.10 },
+  ]
 };
 
+export const COMMON_CRITERIA = CATEGORY_CRITERIA_MAP['Spor Etkinlikleri'];
+
 export function calculateOverallScore(scores: RatingCriterion, category: SportsCategory = 'Spor Etkinlikleri'): number {
-  const mapping = CATEGORY_CRITERIA_MAP[category] || COMMON_CRITERIA;
+  const mapping = CATEGORY_CRITERIA_MAP[category] || CATEGORY_CRITERIA_MAP['Spor Etkinlikleri'];
   let sum = 0;
   let totalWeight = 0;
   
@@ -27,9 +46,34 @@ export function calculateOverallScore(scores: RatingCriterion, category: SportsC
     }
   }
   
-  // Normalization if weights don't add up to 1 for some reason, or if scores are missing
-  if (totalWeight === 0) return 0;
+  if (totalWeight === 0) {
+    let legacySum = 0;
+    let legacyCount = 0;
+    for (const val of Object.values(scores)) {
+      if (typeof val === 'number') {
+        legacySum += val;
+        legacyCount++;
+      }
+    }
+    if (legacyCount > 0) {
+      return Math.round((legacySum / legacyCount) * 10) / 10;
+    }
+    return 0;
+  }
+  
   return Math.round((sum / totalWeight) * 10) / 10;
+}
+
+export function getCriterionScore(ratingBreakdown: RatingCriterion, criterionKey: string, overallFallback = 8.5): number {
+  if (ratingBreakdown && typeof ratingBreakdown[criterionKey] === 'number') {
+    return ratingBreakdown[criterionKey];
+  }
+  const existingValues = Object.values(ratingBreakdown || {}).filter(v => typeof v === 'number');
+  if (existingValues.length > 0) {
+    const avg = existingValues.reduce((a, b) => a + b, 0) / existingValues.length;
+    return Math.round(avg * 10) / 10;
+  }
+  return overallFallback;
 }
 
 export function getScoreBadgeColor(score: number): {

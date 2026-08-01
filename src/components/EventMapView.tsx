@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import { SportsEvent, SportsCategory } from '../types';
+import { TURKEY_CITIES } from '../data/turkeyLocations';
 import { 
   MapPin, 
   Navigation, 
@@ -11,12 +13,16 @@ import {
   Calendar, 
   ChevronRight, 
   Maximize2, 
+  Minimize2,
   Compass, 
   X, 
   CheckCircle2, 
   AlertCircle,
   LocateFixed,
-  SlidersHorizontal
+  SlidersHorizontal,
+  List,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface EventMapViewProps {
@@ -75,7 +81,34 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
 
-  // User Location & Distance state
+  // Fullscreen Map State
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSidebarInFullscreen, setShowSidebarInFullscreen] = useState(true);
+
+  const toggleFullscreen = () => {
+    setIsFullscreen((prev) => !prev);
+  };
+
+  // Keyboard Escape key listener to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  // Recalculate Leaflet Map size when fullscreen or sidebar visibility changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isFullscreen, showSidebarInFullscreen]);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -98,6 +131,8 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
 
   // Filter events matching active filters
   const filteredEvents = events.filter((e) => {
+    if (e.isActive === false) return false;
+    
     // Latitude and longitude must exist
     if (!e.latitude || !e.longitude) return false;
 
@@ -145,38 +180,60 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      // Default center in Turkey (e.g. Istanbul / Turkey center)
-      const initialMap = L.map(mapContainerRef.current, {
-        center: [41.0082, 28.9784],
-        zoom: 10,
-        zoomControl: false,
-      });
-
-      // Add Zoom control to top right
-      L.control.zoom({ position: 'topright' }).addTo(initialMap);
-
-      // Add Dark / High contrast CartoDB map tile layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        maxZoom: 19,
-        subdomains: 'abcd',
-      }).addTo(initialMap);
-
-      markersGroupRef.current = L.layerGroup().addTo(initialMap);
-      mapInstanceRef.current = initialMap;
+    // Remove existing map instance before creating a new one if DOM re-mounted
+    if (mapInstanceRef.current) {
+      try {
+        mapInstanceRef.current.remove();
+      } catch (err) {
+        console.error('Error removing previous map instance:', err);
+      }
+      mapInstanceRef.current = null;
     }
 
-    // Cleanup on unmount
+    // Default center in Turkey (e.g. Istanbul / Turkey center)
+    const initialMap = L.map(mapContainerRef.current, {
+      center: [41.0082, 28.9784],
+      zoom: 10,
+      zoomControl: false,
+    });
+
+    // Add Zoom control to top right
+    L.control.zoom({ position: 'topright' }).addTo(initialMap);
+
+    // Add Dark / High contrast CartoDB map tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 19,
+      subdomains: 'abcd',
+    }).addTo(initialMap);
+
+    markersGroupRef.current = L.layerGroup().addTo(initialMap);
+    mapInstanceRef.current = initialMap;
+
+    // Trigger map resize recalculation for full screen / container changes
+    const t1 = setTimeout(() => {
+      initialMap.invalidateSize();
+    }, 100);
+    const t2 = setTimeout(() => {
+      initialMap.invalidateSize();
+    }, 350);
+
+    // Cleanup on unmount or when full screen toggles
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.remove();
+        } catch (err) {
+          console.error('Error cleaning up map:', err);
+        }
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [isFullscreen]);
 
-  // Update Markers when filteredEvents changes
+  // Update Markers when filteredEvents or isFullscreen changes
   useEffect(() => {
     const map = mapInstanceRef.current;
     const markersGroup = markersGroupRef.current;
@@ -230,20 +287,20 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
 
       // Create rich HTML popup content
       const popupHtml = `
-        <div style="font-family: sans-serif; color: #0f172a; width: 220px; text-align: left;">
-          <img src="${ev.image}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />
+        <div style="font-family: sans-serif; color: #0f172a; width: 180px; text-align: left;">
+          <img src="${ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;" />
           <div style="display: flex; items-center; justify-content: space-between; gap: 4px; margin-bottom: 4px;">
-            <span style="background-color: ${color}; color: #020617; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
+            <span style="background-color: ${color}; color: #020617; font-size: 9px; font-weight: 800; padding: 2px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">
               ${ev.category}
             </span>
-            <span style="font-size: 12px; font-weight: 900; color: #059669;">
+            <span style="font-size: 11px; font-weight: 900; color: #059669; white-space: nowrap;">
               ★ ${ev.overallScore.toFixed(1)} / 10
             </span>
           </div>
-          <h4 style="font-weight: 800; font-size: 13px; margin: 4px 0 2px 0; color: #020617; line-height: 1.3;">
+          <h4 style="font-weight: 800; font-size: 12px; margin: 4px 0 2px 0; color: #020617; line-height: 1.2;">
             ${ev.title}
           </h4>
-          <p style="font-size: 11px; color: #64748b; margin: 0 0 6px 0;">
+          <p style="font-size: 10px; color: #64748b; margin: 0 0 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             📍 ${ev.venue} (${ev.city})
           </p>
           <button id="btn-detail-${ev.id}" style="
@@ -251,14 +308,14 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
             background: linear-gradient(135deg, #10b981, #14b8a6);
             color: #020617;
             font-weight: 800;
-            font-size: 11px;
-            padding: 7px;
+            font-size: 10px;
+            padding: 6px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
           ">
-            İncele & SporPuan Değerlendir
+            İncele
           </button>
         </div>
       `;
@@ -280,11 +337,34 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
       markersGroup.addLayer(marker);
     });
 
+    // Re-add user location marker if user coords exist
+    if (userCoords) {
+      const userIcon = L.divIcon({
+        className: 'user-location-marker',
+        html: `
+          <div style="
+            width: 20px;
+            height: 20px;
+            background-color: #3b82f6;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3);
+          "></div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+
+      userMarkerRef.current = L.marker([userCoords.lat, userCoords.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup('<b>📍 Sizin Konumunuz</b><br>Yakındaki spor etkinlikleri hesaplandı.');
+    }
+
     // Fit map bounds if markers exist
     if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
     }
-  }, [filteredEvents]);
+  }, [filteredEvents, isFullscreen]);
 
   // Handle Find My Location
   const handleLocateUser = () => {
@@ -357,6 +437,8 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
     );
   };
 
+  const [searchParams] = useSearchParams();
+
   // Fly to event on map when clicked in side list
   const handleFlyToEvent = (event: SportsEvent) => {
     if (!event.latitude || !event.longitude) return;
@@ -374,6 +456,20 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
       });
     }
   };
+
+  // Auto-focus event if 'id' parameter is passed in URL
+  useEffect(() => {
+    const targetId = searchParams.get('id');
+    if (targetId && events.length > 0) {
+      const targetEvent = events.find((e) => e.id === targetId);
+      if (targetEvent) {
+        const timer = setTimeout(() => {
+          handleFlyToEvent(targetEvent);
+        }, 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [searchParams, events]);
 
   const mapContent = (
     <div className="flex flex-col h-full space-y-4">
@@ -457,22 +553,77 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
               className="bg-transparent text-slate-800 font-bold focus:outline-none cursor-pointer"
             >
               <option value="Tüm Şehirler" className="bg-white text-slate-800">Tüm Şehirler</option>
-              {['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Trabzon', 'Eskişehir', 'Kocaeli'].map((c) => (
-                <option key={c} value={c} className="bg-white text-slate-800">{c}</option>
+              {TURKEY_CITIES.map((c) => (
+                <option key={c.name} value={c.name} className="bg-white text-slate-800">{c.name}</option>
               ))}
             </select>
           </div>
+
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition shadow-2xs shrink-0 active:scale-95 ${
+              isFullscreen
+                ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700'
+            }`}
+            title={isFullscreen ? 'Tam Ekrandan Çık (Esc)' : 'Haritayı Tam Ekran Moduna Al'}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>Küçült (Esc)</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Tam Ekran</span>
+              </>
+            )}
+          </button>
 
         </div>
 
       </div>
 
       {/* Main Map & Sidebar Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-[480px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0">
         
         {/* Leaflet Map Area */}
-        <div className="lg:col-span-8 bg-white border border-slate-200 rounded-3xl overflow-hidden relative shadow-sm min-h-[380px] lg:min-h-full">
-          <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-10" />
+        <div className={`${isFullscreen && !showSidebarInFullscreen ? 'lg:col-span-12' : 'lg:col-span-8'} bg-white border border-slate-200 rounded-3xl overflow-hidden relative shadow-sm min-h-[380px] lg:min-h-full h-full flex flex-col`}>
+          <div ref={mapContainerRef} className="w-full h-full min-h-[380px] flex-1 z-10" />
+
+          {/* Floating Action Controls on Top Right of Map */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+            {isFullscreen && (
+              <button
+                onClick={() => setShowSidebarInFullscreen(prev => !prev)}
+                className="bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 hover:text-blue-600 border border-slate-200 dark:border-slate-700 shadow-md px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-extrabold transition hover:scale-105 backdrop-blur-md"
+                title={showSidebarInFullscreen ? 'Tesis Listesini Gizle' : 'Tesis Listesini Göster'}
+              >
+                {showSidebarInFullscreen ? <EyeOff className="w-4 h-4 text-blue-600" /> : <Eye className="w-4 h-4 text-blue-600" />}
+                <span className="hidden sm:inline">Liste ({showSidebarInFullscreen ? 'Gizle' : 'Göster'})</span>
+              </button>
+            )}
+
+            <button
+              onClick={toggleFullscreen}
+              className="hidden md:flex bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 hover:text-blue-600 border border-slate-200 dark:border-slate-700 shadow-md px-3 py-2 rounded-xl items-center gap-1.5 text-xs font-extrabold transition hover:scale-105 backdrop-blur-md"
+              title={isFullscreen ? 'Tam Ekrandan Çık (Esc)' : 'Haritayı Tam Ekran Yap'}
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className="w-4 h-4 text-rose-600" />
+                  <span className="text-rose-600">Küçült (Esc)</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-4 h-4 text-blue-600" />
+                  <span>Tam Ekran</span>
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Floating Badge Indicator */}
           <div className="absolute bottom-4 left-4 z-20 bg-white/90 border border-slate-200 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] text-slate-700 flex items-center gap-2 shadow-md">
@@ -482,92 +633,129 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
         </div>
 
         {/* Sidebar: Nearby & Filtered Events List */}
-        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-4 flex flex-col space-y-3 overflow-hidden shadow-sm max-h-[520px] lg:max-h-full">
-          
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 shrink-0">
-            <div className="flex items-center gap-2">
-              <Compass className="w-4 h-4 text-blue-600" />
-              <h3 className="font-extrabold text-sm text-slate-900">
-                {userCoords ? 'Yakındakiler' : 'Harita Listesi'}
-              </h3>
+        {(!isFullscreen || showSidebarInFullscreen) && (
+          <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-4 flex flex-col space-y-3 overflow-hidden shadow-sm max-h-[520px] lg:max-h-full h-full">
+            
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-blue-600" />
+                <h3 className="font-extrabold text-sm text-slate-900">
+                  {userCoords ? 'Yakındakiler' : 'Harita Listesi'}
+                </h3>
+              </div>
+              <span className="text-[10px] bg-blue-50 text-blue-700 font-mono font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                {eventsWithDistance.length} Kayıt
+              </span>
             </div>
-            <span className="text-[10px] bg-blue-50 text-blue-700 font-mono font-bold px-2 py-0.5 rounded-full border border-blue-200">
-              {eventsWithDistance.length} Kayıt
-            </span>
-          </div>
 
-          {eventsWithDistance.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 space-y-2 my-auto">
-              <MapPin className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">Bu filtrelere uygun etkinlik haritada bulunamadı.</p>
-              <p className="text-[11px]">Mesafe yarıçapını genişletebilir veya şehir filtresini değiştirebilirsiniz.</p>
-            </div>
-          ) : (
-            <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
-              {eventsWithDistance.map((ev) => (
-                <div
-                  key={ev.id}
-                  onClick={() => handleFlyToEvent(ev)}
-                  onMouseEnter={() => setActiveHoveredEventId(ev.id)}
-                  onMouseLeave={() => setActiveHoveredEventId(null)}
-                  className={`p-3 rounded-2xl border transition cursor-pointer flex items-center gap-3 ${
-                    activeHoveredEventId === ev.id
-                      ? 'bg-blue-50/70 border-blue-400 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60'
-                  }`}
-                >
-                  <img
-                    src={ev.image}
-                    alt={ev.title}
-                    className="w-16 h-16 rounded-xl object-cover shrink-0"
-                  />
-
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
-                        {ev.category}
-                      </span>
-                      <span className="text-[10px] font-black text-amber-500 flex items-center gap-0.5">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        {ev.overallScore.toFixed(1)}
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-xs text-slate-900 truncate leading-tight">
-                      {ev.title}
-                    </h4>
-
-                    <div className="flex items-center justify-between text-[10px] text-slate-500">
-                      <span className="truncate">📍 {ev.venue}</span>
-                      {ev.distanceKm !== null && (
-                        <span className="bg-blue-50 text-blue-700 font-mono font-bold px-1.5 py-0.5 rounded shrink-0 border border-blue-200">
-                          {ev.distanceKm} km
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectEvent(ev);
-                    }}
-                    title="Detaylar & Puan Tablosu"
-                    className="p-2 bg-white hover:bg-blue-600 hover:text-white text-slate-600 rounded-xl transition shrink-0 border border-slate-200 shadow-2xs"
+            {eventsWithDistance.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 space-y-2 my-auto">
+                <MapPin className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-xs font-bold text-slate-700">Bu filtrelere uygun etkinlik haritada bulunamadı.</p>
+                <p className="text-[11px]">Mesafe yarıçapını genişletebilir veya şehir filtresini değiştirebilirsiniz.</p>
+              </div>
+            ) : (
+              <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
+                {eventsWithDistance.map((ev) => (
+                  <div
+                    key={ev.id}
+                    onClick={() => handleFlyToEvent(ev)}
+                    onMouseEnter={() => setActiveHoveredEventId(ev.id)}
+                    onMouseLeave={() => setActiveHoveredEventId(null)}
+                    className={`p-3 rounded-2xl border transition cursor-pointer flex items-center gap-3 ${
+                      activeHoveredEventId === ev.id
+                        ? 'bg-blue-50/70 border-blue-400 shadow-xs'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60'
+                    }`}
                   >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <img
+                      src={ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}
+                      alt={ev.title}
+                      className="w-16 h-16 rounded-xl object-cover shrink-0"
+                    />
 
-        </div>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
+                          {ev.category}
+                        </span>
+                        <span className="text-[10px] font-black text-amber-500 flex items-center gap-0.5">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          {ev.overallScore.toFixed(1)}
+                        </span>
+                      </div>
+
+                      <h4 className="font-bold text-xs text-slate-900 truncate leading-tight">
+                        {ev.title}
+                      </h4>
+
+                      <div className="flex items-center justify-between text-[10px] text-slate-500">
+                        <span className="truncate">📍 {ev.venue}</span>
+                        {ev.distanceKm !== null && (
+                          <span className="bg-blue-50 text-blue-700 font-mono font-bold px-1.5 py-0.5 rounded shrink-0 border border-blue-200">
+                            {ev.distanceKm} km
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectEvent(ev);
+                      }}
+                      title="Detaylar & Puan Tablosu"
+                      className="p-2 bg-white hover:bg-blue-600 hover:text-white text-slate-600 rounded-xl transition shrink-0 border border-slate-200 shadow-2xs"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+        )}
 
       </div>
 
     </div>
   );
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-slate-950 p-3 sm:p-4 flex flex-col text-slate-800 overflow-hidden h-screen w-screen">
+        <div className="bg-slate-900/90 backdrop-blur-md text-white p-3 rounded-2xl border border-slate-800 mb-3 flex items-center justify-between shrink-0 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-white flex items-center gap-2">
+                Sporpuan Harita
+                <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">Tam Ekran Modu</span>
+              </h3>
+              <p className="text-[11px] text-slate-400">Gelişmiş filtreleme ve konum takibi</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-95"
+            >
+              <Minimize2 className="w-4 h-4" />
+              <span>Tam Ekrandan Çık (Esc)</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-hidden min-h-0 bg-slate-100 dark:bg-slate-900 rounded-3xl p-3 border border-slate-800 shadow-2xl flex flex-col">
+          {mapContent}
+        </div>
+      </div>
+    );
+  }
 
   if (isModal) {
     return (
@@ -604,8 +792,8 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-140px)]">
       {mapContent}
-    </section>
+    </div>
   );
 };

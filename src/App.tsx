@@ -14,8 +14,12 @@ import { EventMapView } from './components/EventMapView';
 import { EditEventModal } from './components/EditEventModal';
 import { AuthModal } from './components/AuthModal';
 import { AdminPanel } from './components/AdminPanel';
+import { CorporatePage } from './components/CorporatePage';
+import { CorporateInviteForm } from './components/CorporateInviteForm';
+import { ReviewPage } from './components/ReviewPage';
+import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';
 import { Footer } from './components/Footer';
-import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin } from 'lucide-react';
+import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map } from 'lucide-react';
 import { CATEGORY_CRITERIA_MAP, calculateOverallScore } from './lib/scoreUtils';
 
 const EventDetailWrapper = ({ 
@@ -35,7 +39,15 @@ const EventDetailWrapper = ({
   const navigate = useNavigate();
   const event = events.find((e) => e.id === id);
 
-  if (!event) return <div className="p-20 text-center text-xl font-bold">Etkinlik/Tesis bulunamadı.</div>;
+  if (!event || (event.isActive === false && currentUser?.role !== 'admin')) {
+    return (
+      <div className="p-20 text-center flex flex-col items-center justify-center min-h-[50vh]">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">İçerik Bulunamadı</h2>
+        <p className="text-slate-500 dark:text-slate-400">Bu etkinlik/tesis yayından kaldırılmış veya gizlenmiş olabilir.</p>
+        <button onClick={() => navigate('/')} className="mt-6 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Ana Sayfaya Dön</button>
+      </div>
+    );
+  }
 
   return (
     <EventDetailModal
@@ -155,15 +167,16 @@ export default function App() {
 
   // Category counts
   const categoryCounts = useMemo(() => {
+    const activeEvents = events.filter(e => e.isActive !== false);
     const counts: Record<SportsCategory, number> = {
-      'Tümü': events.length,
+      'Tümü': activeEvents.length,
       'Spor Tesisleri': 0,
       'Spor Salonları': 0,
       'Spor Okulları': 0,
       'Spor Etkinlikleri': 0,
     };
 
-    events.forEach((e) => {
+    activeEvents.forEach((e) => {
       if (counts[e.category] !== undefined) {
         counts[e.category] += 1;
       }
@@ -175,6 +188,11 @@ export default function App() {
   // Filtered & Sorted Events
   const filteredEvents = useMemo(() => {
     return events.filter((ev) => {
+      // Is Active check (Admin should see all, but here we just filter for main UI)
+      if (ev.isActive === false) {
+        return false;
+      }
+
       // Category match
       if (selectedCategory !== 'Tümü' && ev.category !== selectedCategory) {
         return false;
@@ -221,7 +239,7 @@ export default function App() {
         const criteria = CATEGORY_CRITERIA_MAP[ev.category] || CATEGORY_CRITERIA_MAP['Spor Etkinlikleri'];
         
         criteria.forEach(crit => {
-          const sum = newReviews.reduce((acc, r) => acc + (r.scores[crit.key] || 0), 0);
+          const sum = newReviews.reduce((acc, r) => acc + (r.scores[crit.key] ?? ev.ratingBreakdown[crit.key] ?? ev.overallScore ?? 8), 0);
           newBreakdown[crit.key] = Math.round((sum / newReviews.length) * 10) / 10;
         });
 
@@ -267,15 +285,19 @@ export default function App() {
     updateEventsState(updated);
   };
 
-  // Open Rate Modal for specific event
+  // Open Rate Page for specific event
   const handleRateClick = (event: SportsEvent, e: React.MouseEvent) => {
     e.stopPropagation();
-    setRateModalEvent(event);
-    setIsRateModalOpen(true);
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    window.scrollTo(0, 0);
+    navigate(`/yorum-yaz?id=${event.id}`);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased flex flex-col pb-16 md:pb-0 selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased flex flex-col pb-16 md:pb-0 selection:bg-blue-600 selection:text-white transition-colors duration-200">
       
       {/* Navigation Header */}
       <Header
@@ -286,11 +308,18 @@ export default function App() {
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         onOpenAddReview={() => {
-          setRateModalEvent(events[0] || null);
-          setIsRateModalOpen(true);
+          if (!currentUser) {
+            setIsAuthModalOpen(true);
+            return;
+          }
+          window.scrollTo(0, 0);
+          navigate('/yorum-yaz');
         }}
         onOpenSubmitEvent={() => setIsSubmitEventOpen(true)}
-        onOpenMapView={() => setIsMapViewModalOpen(true)}
+        onOpenMapView={() => {
+          window.scrollTo(0, 0);
+          navigate('/harita');
+        }}
         currentUser={currentUser}
         onOpenAuthModal={handleOpenAuthModal}
         onLogout={handleLogout}
@@ -298,18 +327,40 @@ export default function App() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 w-full bg-slate-50 relative pt-2">
+      <main className="flex-1 w-full bg-slate-50 dark:bg-slate-950 relative pt-2 transition-colors duration-200">
         <Routes>
           <Route path="/tesis/:id" element={
             <EventDetailWrapper 
               events={events}
               onRateClick={(ev) => {
-                setRateModalEvent(ev);
-                setIsRateModalOpen(true);
+                if (!currentUser) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                window.scrollTo(0, 0);
+                navigate(`/yorum-yaz?id=${ev.id}`);
               }}
               onLikeReview={handleLikeReview}
               currentUser={currentUser}
               setEditingEvent={setEditingEvent}
+            />
+          } />
+
+          <Route path="/yorum-yaz" element={
+            <ReviewPage
+              events={events}
+              onSubmitReview={handleAddReview}
+              currentUser={currentUser}
+              onOpenAuthModal={handleOpenAuthModal}
+            />
+          } />
+
+          <Route path="/puanla" element={
+            <ReviewPage
+              events={events}
+              onSubmitReview={handleAddReview}
+              currentUser={currentUser}
+              onOpenAuthModal={handleOpenAuthModal}
             />
           } />
           
@@ -319,7 +370,60 @@ export default function App() {
               onDeleteEvent={handleDeleteEvent}
               onEditEvent={setEditingEvent}
               onUpdateEvent={handleUpdateEvent}
+              onAddEvent={handleAddNewEvent}
             />
+          } />
+
+          <Route path="/kurumsal" element={
+            <CorporatePage 
+              currentUser={currentUser}
+              onOpenAuthModal={handleOpenAuthModal}
+            />
+          } />
+
+          <Route path="/kurumsal-davet-formu" element={
+            <CorporateInviteForm 
+              currentUser={currentUser}
+              onOpenAuthModal={handleOpenAuthModal}
+            />
+          } />
+
+          <Route path="/kurumsal/davet-formu" element={
+            <CorporateInviteForm 
+              currentUser={currentUser}
+              onOpenAuthModal={handleOpenAuthModal}
+            />
+          } />
+
+          <Route path="/harita" element={
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col min-h-[calc(100vh-100px)]">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <Map className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      <span>Sporpuan Haritası</span>
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      Türkiye genelindeki spor tesislerini ve salonlarını tam sayfa harita üzerinde inceleyin
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <EventMapView
+                events={events}
+                onSelectEvent={(ev) => {
+                  window.scrollTo(0, 0);
+                  navigate('/tesis/' + ev.id);
+                }}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                selectedCity={selectedCity}
+                onSelectCity={setSelectedCity}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+              />
+            </div>
           } />
           
           <Route path="/" element={
@@ -327,11 +431,23 @@ export default function App() {
               {/* Hero Section */}
               <HeroBanner
                 onOpenAddReview={() => {
-                  setRateModalEvent(events[0] || null);
-                  setIsRateModalOpen(true);
+                  if (!currentUser) {
+                    setIsAuthModalOpen(true);
+                    return;
+                  }
+                  window.scrollTo(0, 0);
+                  navigate('/yorum-yaz');
                 }}
-                onOpenMapView={() => setIsMapViewModalOpen(true)}
+                onOpenMapView={() => {
+                  window.scrollTo(0, 0);
+                  navigate('/harita');
+                }}
                 onSelectTopCategory={(tag) => setSearchQuery(tag)}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedCity={selectedCity}
+                setSelectedCity={setSelectedCity}
+                cities={cities}
               />
 
               {/* Categories Bar & Sorting */}
@@ -361,34 +477,26 @@ export default function App() {
                 </div>
               ) : (
                 /* Events Grid Section */
-                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <section id="events-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                   
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>
                           {selectedCategory === 'Tümü' ? 'Tüm Sonuçlar' : selectedCategory}
                         </span>
-                        <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-mono font-bold">
+                        <span className="text-xs bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 px-2.5 py-0.5 rounded-full font-mono font-bold">
                           {filteredEvents.length} Kayıt
                         </span>
                       </h2>
                     </div>
-
-                    <button
-                      onClick={() => setIsSubmitEventOpen(true)}
-                      className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2 rounded-lg transition shadow-sm"
-                    >
-                      <PlusCircle className="w-4 h-4 text-white" />
-                      <span>Kayıt Ekle</span>
-                    </button>
                   </div>
 
                   {filteredEvents.length === 0 ? (
-                    <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                      <SearchX className="w-12 h-12 text-slate-400 mx-auto" />
-                      <h3 className="text-lg font-bold text-slate-800">Aradığınız kriterlere uygun sonuç bulunamadı</h3>
-                      <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+                      <SearchX className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto" />
+                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Aradığınız kriterlere uygun sonuç bulunamadı</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                         Farklı bir arama kelimesi yazabilir, şehir filtresini değiştirebilir veya kendi spor kurumunuzu sporpuan'a ekleyebilirsiniz.
                       </p>
                       <button
@@ -419,13 +527,16 @@ export default function App() {
                   )}
                 </section>
               )}
+              
+              {/* Sporpuanlılar Ne Demiş Section */}
+              <SporpuanlilarNeDemis events={events} />
             </>
           } />
         </Routes>
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer onOpenSubmitEvent={() => setIsSubmitEventOpen(true)} />
 
       {/* MODALS */}
       {/* 2. Rate / Add Review Modal */}
@@ -454,26 +565,6 @@ export default function App() {
           onAddEvent={handleAddNewEvent}
           currentUser={currentUser}
           onOpenAuthModal={() => handleOpenAuthModal()}
-        />
-      )}
-
-      {/* 6. Standalone Map View Modal */}
-      {isMapViewModalOpen && (
-        <EventMapView
-          events={events}
-          onSelectEvent={(ev) => {
-            setIsMapViewModalOpen(false);
-            window.scrollTo(0, 0);
-            navigate('/tesis/' + ev.id);
-          }}
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          selectedCity={selectedCity}
-          onSelectCity={setSelectedCity}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isModal={true}
-          onCloseModal={() => setIsMapViewModalOpen(false)}
         />
       )}
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types';
-import { X, User, Building2, Lock, Mail, ShieldCheck, Check, Sparkles, LogIn, UserPlus, ArrowRight } from 'lucide-react';
+import { X, User, Building2, Lock, Mail, ShieldCheck, Check, Sparkles, LogIn, UserPlus, ArrowRight, FileText } from 'lucide-react';
 import { auth, db, googleProvider, appleProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { LegalModal, LegalDocType } from './LegalModal';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -22,6 +23,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [password, setPassword] = useState('');
   const [title, setTitle] = useState('');
 
+  // Legal Consent states
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [kvkkAccepted, setKvkkAccepted] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState<LegalDocType | null>(null);
+
   const saveUserToFirestore = async (userProfile: UserProfile) => {
     try {
       const userRef = doc(db, 'users', userProfile.id);
@@ -29,8 +35,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       if (!userSnap.exists()) {
         await setDoc(userRef, userProfile);
       } else {
-        // If it exists, update with latest login info if needed, but for now just leave it.
-        // Or we could return the existing profile
         const existingData = userSnap.data() as UserProfile;
         return existingData;
       }
@@ -93,13 +97,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         name: user.displayName || 'Spor Sever',
         email: user.email || '',
         role: user.email === 'selmanutkumarmara@gmail.com' ? 'admin' : 'user',
-        avatar: user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
         title: 'Doğrulanmış Sporsever',
         createdAt: new Date().toISOString().split('T')[0],
       };
       
       userProfile = await saveUserToFirestore(userProfile);
-
+      
       onLoginSuccess(userProfile);
       onClose();
     } catch (err: any) {
@@ -124,112 +128,160 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  // Demo accounts
-  const demoUsers: UserProfile[] = [
-    {
-      id: 'demo-user-1',
-      name: 'Ahmet Yılmaz',
-      email: 'ahmet@sporsever.com',
-      role: 'user',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-      title: 'Kıdemli Tribün Taraftarı',
-      createdAt: '2025-01-15',
-    },
-  ];
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    setError(null);
 
-    try {
-      setError(null);
-      let user;
-      
-      if (activeTab === 'register') {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        user = result.user;
-      } else {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        user = result.user;
+    if (activeTab === 'register') {
+      if (!name.trim()) {
+        setError('Lütfen adınızı giriniz.');
+        return;
       }
 
-      let userProfile: UserProfile = {
-        id: user.uid,
-        name: name.trim() || user.displayName || 'Spor Sever',
-        email: user.email || email.trim(),
-        role: (user.email === 'selmanutkumarmara@gmail.com' || email.trim() === 'selmanutkumarmara@gmail.com') ? 'admin' : 'user',
-        avatar: user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-        title: title.trim() || 'Doğrulanmış Sporsever',
-        createdAt: new Date().toISOString().split('T')[0],
-      };
+      if (!termsAccepted || !kvkkAccepted) {
+        setError('Devam edebilmek için Kullanım Şartları ve KVKK Aydınlatma Metnini onaylamanız gerekmektedir.');
+        return;
+      }
+      
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-      userProfile = await saveUserToFirestore(userProfile);
+        let role: UserRole = 'user';
+        if (email === 'selmanutkumarmara@gmail.com') {
+          role = 'admin';
+        }
 
-      onLoginSuccess(userProfile);
-      onClose();
-    } catch (err: any) {
-      console.error(err);
-      if (err.code === 'auth/operation-not-allowed') {
-        const mockUid = 'mock-email-' + Math.random().toString(36).substring(2, 11);
         let userProfile: UserProfile = {
-          id: mockUid,
-          name: name.trim() || 'Spor Sever',
+          id: user.uid,
+          name: name.trim(),
           email: email.trim(),
-          role: email.trim() === 'selmanutkumarmara@gmail.com' ? 'admin' : 'user',
+          role,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-          title: title.trim() || 'Doğrulanmış Sporsever',
+          title: 'Doğrulanmış Sporsever',
           createdAt: new Date().toISOString().split('T')[0],
         };
+
         userProfile = await saveUserToFirestore(userProfile);
+
         onLoginSuccess(userProfile);
         onClose();
-      } else {
-        setError(err.message || 'Giriş/Kayıt işlemi başarısız oldu.');
+      } catch (err: any) {
+        console.error(err);
+        if (err.code === 'auth/operation-not-allowed') {
+          const mockUid = 'mock-user-' + Math.random().toString(36).substring(2, 11);
+          let role: UserRole = 'user';
+          if (email === 'selmanutkumarmara@gmail.com') {
+            role = 'admin';
+          }
+          let userProfile: UserProfile = {
+            id: mockUid,
+            name: name.trim(),
+            email: email.trim(),
+            role,
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+            title: 'Doğrulanmış Sporsever',
+            createdAt: new Date().toISOString().split('T')[0],
+          };
+          userProfile = await saveUserToFirestore(userProfile);
+          onLoginSuccess(userProfile);
+          onClose();
+        } else if (err.code === 'auth/email-already-in-use') {
+          setError('Bu e-posta adresi zaten kullanımda.');
+        } else if (err.code === 'auth/weak-password') {
+          setError('Şifre en az 6 karakter olmalıdır.');
+        } else {
+          setError(err.message || 'Kayıt yapılırken bir hata oluştu.');
+        }
+      }
+    } else {
+      // Login mode
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        let role: UserRole = 'user';
+        if (email === 'selmanutkumarmara@gmail.com') {
+          role = 'admin';
+        }
+
+        let userProfile: UserProfile = {
+          id: user.uid,
+          name: name || user.displayName || email.split('@')[0],
+          email: email.trim(),
+          role,
+          avatar: user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+          title: 'Doğrulanmış Sporsever',
+          createdAt: new Date().toISOString().split('T')[0],
+        };
+
+        userProfile = await saveUserToFirestore(userProfile);
+
+        onLoginSuccess(userProfile);
+        onClose();
+      } catch (err: any) {
+        console.error(err);
+        if (err.code === 'auth/operation-not-allowed') {
+          let role: UserRole = 'user';
+          if (email === 'selmanutkumarmara@gmail.com') {
+            role = 'admin';
+          }
+          let userProfile: UserProfile = {
+            id: 'mock-user-' + Math.random().toString(36).substring(2, 11),
+            name: email.split('@')[0] || 'Kullanıcı',
+            email: email.trim(),
+            role,
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+            title: 'Doğrulanmış Sporsever',
+            createdAt: new Date().toISOString().split('T')[0],
+          };
+          userProfile = await saveUserToFirestore(userProfile);
+          onLoginSuccess(userProfile);
+          onClose();
+        } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          setError('Hatalı e-posta veya şifre.');
+        } else {
+          setError(err.message || 'Giriş yapılırken bir hata oluştu.');
+        }
       }
     }
   };
 
-  const handleDemoLogin = (demoUser: UserProfile) => {
-    onLoginSuccess(demoUser);
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col text-slate-800 dark:text-slate-100 animate-in zoom-in-95 duration-200">
+        
+        {/* Modal Header */}
+        <div className="bg-slate-50 dark:bg-slate-850 p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
-                Giriş Yap / Üye Ol
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">
+                {activeTab === 'register' ? 'Sporpuan Hesabı Oluştur' : 'Sporpuan Girişi'}
               </h3>
-              <p className="text-xs text-slate-500 font-medium">
-                Organizatör veya sporsever olarak platforma katılın
-              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Spor topluluğuna katılın</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-xl transition"
+            className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Tab Selection */}
-        <div className="flex border-b border-slate-200 bg-slate-100/60 p-1 gap-1">
+        {/* Tab Selection Navigation */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-850 p-1 gap-1">
           <button
             type="button"
             onClick={() => setActiveTab('register')}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 ${
               activeTab === 'register'
-                ? 'bg-white text-blue-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <UserPlus className="w-4 h-4" />
@@ -240,8 +292,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             onClick={() => setActiveTab('login')}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 ${
               activeTab === 'login'
-                ? 'bg-white text-blue-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <LogIn className="w-4 h-4" />
@@ -252,7 +304,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Content */}
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
           {error && (
-            <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl font-medium">
+            <div className="p-3 bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs rounded-xl font-medium border border-red-200 dark:border-red-800/80">
               {error}
             </div>
           )}
@@ -262,7 +314,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold text-xs py-2.5 px-4 rounded-xl transition-colors shadow-xs"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -287,7 +339,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={handleAppleLogin}
-              className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 bg-slate-900 dark:bg-slate-750 border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors shadow-xs"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -300,8 +352,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
 
           <div className="relative flex items-center justify-center my-2">
-            <div className="border-t border-slate-200 w-full"></div>
-            <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider absolute">
+            <div className="border-t border-slate-200 dark:border-slate-800 w-full"></div>
+            <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider absolute">
               veya e-posta ile
             </span>
           </div>
@@ -310,7 +362,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             {/* Name input */}
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">
+              <label className="font-bold text-slate-700 dark:text-slate-300 block">
                 Adınız Soyadınız *
               </label>
               <input
@@ -319,46 +371,108 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="örn: Ahmet Yılmaz"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
               />
             </div>
 
             {/* Email input */}
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">E-Posta Adresi *</label>
+              <label className="font-bold text-slate-700 dark:text-slate-300 block">E-Posta Adresi *</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ornek@domain.com"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
                 />
               </div>
             </div>
 
             {/* Password input */}
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Şifre *</label>
+              <label className="font-bold text-slate-700 dark:text-slate-300 block">Şifre *</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
                 />
               </div>
             </div>
 
+            {/* Legal Consent Checkboxes for Registration */}
+            {activeTab === 'register' && (
+              <div className="space-y-2.5 pt-1 bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 p-3.5 rounded-xl">
+                <div className="flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="terms-check"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-700 focus:ring-blue-500 cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="terms-check" className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug cursor-pointer select-none">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowLegalModal('terms');
+                      }}
+                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                    >
+                      Kullanım Şartları
+                    </button>
+                    {' '}ve{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowLegalModal('privacy');
+                      }}
+                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                    >
+                      Gizlilik Politikası
+                    </button>
+                    'nı okudum, kabul ediyorum. <span className="text-red-500 font-bold">*</span>
+                  </label>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="kvkk-check"
+                    checked={kvkkAccepted}
+                    onChange={(e) => setKvkkAccepted(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-700 focus:ring-blue-500 cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="kvkk-check" className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug cursor-pointer select-none">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowLegalModal('kvkk');
+                      }}
+                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                    >
+                      KVKK Aydınlatma Metni
+                    </button>
+                    {' '}kapsamında kişisel verilerimin işlenmesini onaylıyorum. <span className="text-red-500 font-bold">*</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl transition shadow-md shadow-blue-200 flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-extrabold rounded-xl transition shadow-md shadow-blue-200/50 dark:shadow-none flex items-center justify-center gap-2 mt-2"
             >
               {activeTab === 'register' ? (
                 <>
@@ -373,8 +487,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
             </button>
           </form>
+
+          {/* Legal Notice Footer */}
+          <div className="mt-3 text-center text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+            Devam ederek sporpuan{' '}
+            <button
+              type="button"
+              onClick={() => setShowLegalModal('terms')}
+              className="text-slate-600 dark:text-slate-300 underline font-semibold hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              Kullanım Şartları
+            </button>
+            {', '}
+            <button
+              type="button"
+              onClick={() => setShowLegalModal('privacy')}
+              className="text-slate-600 dark:text-slate-300 underline font-semibold hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              Gizlilik Politikası
+            </button>
+            {' ve '}
+            <button
+              type="button"
+              onClick={() => setShowLegalModal('kvkk')}
+              className="text-slate-600 dark:text-slate-300 underline font-semibold hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              KVKK Bildirimi
+            </button>
+            'ni inceleyebilirsiniz.
+          </div>
         </div>
       </div>
+
+      {/* Render Legal Documents Modal if requested */}
+      {showLegalModal && (
+        <LegalModal
+          initialDoc={showLegalModal}
+          onClose={() => setShowLegalModal(null)}
+        />
+      )}
     </div>
   );
 };

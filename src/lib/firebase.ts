@@ -9,7 +9,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, memoryLocalCache, getFirestore, Firestore, doc, getDocFromServer } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyALpsVjRPYQQHwV3rU--B2kmjtKBXJgkCI",
@@ -23,7 +23,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const databaseId = "ai-studio-sporpuan-584c3fa0-145e-4898-bad3-ca77311c7f56";
-const db = getFirestore(app, databaseId);
+
+let db: Firestore;
+try {
+  db = initializeFirestore(app, {
+    localCache: memoryLocalCache(),
+  }, databaseId);
+} catch {
+  db = getFirestore(app, databaseId);
+}
+
+// Test connection silently as per skill requirement
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn("Firestore connection check: client is offline");
+    }
+  }
+}
+testConnection();
 
 const googleProvider = new GoogleAuthProvider();
 const appleProvider = new OAuthProvider('apple.com');

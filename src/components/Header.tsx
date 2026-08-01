@@ -13,14 +13,17 @@ import {
   Share2,
   Map,
   ShieldCheck,
-
+  Sun,
+  Moon,
   Settings,
   Menu,
   X,
-  Home
+  Home,
+  Phone
 } from 'lucide-react';
 import { SportsCategory, UserProfile, UserRole } from '../types';
 import { User, LogOut, LogIn, UserPlus, Building2 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface HeaderProps {
   searchQuery: string;
@@ -43,6 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
   setSearchQuery,
   selectedCity,
   setSelectedCity,
+  selectedCategory,
   setSelectedCategory,
   onOpenAddReview,
   onOpenSubmitEvent,
@@ -54,6 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
 
   const handleShareBrand = () => {
@@ -72,72 +77,50 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 text-slate-800 shadow-sm">
-        {/* Top Banner Notice - Soft Light Blue */}
-        <div className="bg-blue-50 border-b border-blue-100 px-3 py-1.5 text-xs text-blue-900 text-center font-medium flex items-center justify-between sm:justify-center gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
-              sporpuan
-            </span>
-            <span className="hidden sm:inline">
-              Türkiye'nin Bağımsız Spor Puanlama & İnceleme Platformu
-            </span>
-            <span className="sm:hidden text-[11px] font-semibold text-blue-950 truncate max-w-[170px]">
-              Spor Puanlama
-            </span>
-          </div>
-        </div>
-
+      <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-sm transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
             
             {/* Brand Logo - Clean Soft Logo */}
             <div className="flex items-center gap-2 shrink-0">
-              <button onClick={handleResetHome} className="flex items-center gap-2.5 group text-left">
-                <div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200">
-                  <Star className="w-full h-full text-blue-600 fill-blue-600" />
-                  <Check className="absolute w-1/2 h-1/2 text-white stroke-[3]" />
+              <button onClick={handleResetHome} className="flex items-center gap-3 group text-left">
+                <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200">
+                  <Star className="w-full h-full text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400" />
+                  <Check className="absolute w-1/2 h-1/2 text-white dark:text-slate-900 stroke-[3]" />
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1">
-                    <span className="font-['Red_Hat_Display',_sans-serif] font-normal text-[#0056b3] text-[22px] leading-[30px]">
-                      sporpuan
+                    <span className="font-['Red_Hat_Display',_sans-serif] font-normal text-[#0056b3] dark:text-blue-400 text-[26px] sm:text-[30px] leading-[30px]">
+                      Sporpuan
                     </span>
                   </div>
                 </div>
               </button>
             </div>
 
-            {/* Desktop Search & City Filter Bar */}
-            <div className="hidden md:flex items-center flex-1 max-w-lg bg-slate-100 border border-slate-200 rounded-xl p-1.5 gap-2 focus-within:border-blue-500 focus-within:bg-white transition-all">
-              <div className="flex items-center flex-1 pl-2 gap-2 text-slate-400">
-                <Search className="w-4 h-4 text-slate-400 shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Etkinlik, stadyum, takım veya organizatör ara..."
-                  className="w-full bg-transparent border-none text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
-                />
-              </div>
-
-              <div className="h-6 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-1 pl-1 pr-2 shrink-0 text-slate-600 text-xs">
-                <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="bg-transparent border-none text-xs text-slate-700 font-medium focus:outline-none cursor-pointer pr-1"
-                >
-                  <option value="Tüm Şehirler" className="bg-white text-slate-800">Tüm Şehirler</option>
-                  {cities.map((city) => (
-                    <option key={city} value={city} className="bg-white text-slate-800">
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Desktop Center Space - Quick Category Shortcuts */}
+            <div className="hidden xl:flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/90 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+              {(['Tümü', 'Spor Tesisleri', 'Spor Salonları', 'Spor Okulları', 'Spor Etkinlikleri'] as SportsCategory[]).map((cat) => {
+                const isActive = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      const el = document.getElementById('events-section');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Desktop Right Actions Buttons */}
@@ -145,33 +128,35 @@ export const Header: React.FC<HeaderProps> = ({
               
               <button
                 onClick={onOpenMapView}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition"
               >
-                <Map className="w-3.5 h-3.5 text-blue-600" />
+                <Map className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>Harita</span>
               </button>
 
+              {/* Theme Toggle Button */}
               <button
-                onClick={onOpenAddReview}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm active:scale-95"
+                onClick={toggleDarkMode}
+                title={darkMode ? 'Aydınlık Mod' : 'Karanlık Mod'}
+                className="p-2 text-slate-700 dark:text-amber-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl transition active:scale-95"
+                aria-label="Tema Değiştir"
               >
-                <Star className="w-3.5 h-3.5 fill-white text-white" />
-                <span>Puanla</span>
+                {darkMode ? <Sun className="w-4 h-4 text-amber-400 fill-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
               </button>
 
               {/* Auth User Profile Section */}
               {currentUser ? (
-                <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl p-1 pr-2">
+                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 pr-2">
                   <img
-                    src={currentUser.avatar}
+                    src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
                     alt={currentUser.name}
-                    className="w-7 h-7 rounded-lg object-cover border border-slate-300 shrink-0"
+                    className="w-7 h-7 rounded-lg object-cover border border-slate-300 dark:border-slate-600 shrink-0"
                   />
                   <div className="hidden lg:flex flex-col min-w-0">
-                    <span className="text-xs font-extrabold text-slate-900 truncate leading-tight">
+                    <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 truncate leading-tight">
                       {currentUser.name}
                     </span>
-                    <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wide">
+                    <span className="text-[9px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
                       {currentUser.role === 'admin' ? 'Yönetici' : currentUser.role === 'organizer' ? 'Organizatör' : 'Sporsever'}
                     </span>
                   </div>
@@ -179,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={() => navigate('/admin')}
                       title="Yönetici Paneli"
-                      className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition"
+                      className="p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-950/80 rounded-lg transition"
                     >
                       <ShieldCheck className="w-3.5 h-3.5" />
                     </button>
@@ -187,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <button
                     onClick={onLogout}
                     title="Oturumu Kapat"
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
@@ -196,211 +181,172 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => onOpenAuthModal()}
-                    className="flex items-center gap-2.5 px-4 py-1.5 text-left bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-blue-200 rounded-full transition-colors active:scale-95 shadow-sm"
+                    className="flex items-center gap-2.5 px-4 py-1.5 text-left bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-200 rounded-full transition-colors active:scale-95 shadow-xs"
                   >
                     <div className="flex flex-col -space-y-0.5">
-                      <span className="text-sm font-black text-slate-800 tracking-tight leading-tight">Giriş Yap</span>
-                      <span className="text-xs font-medium text-slate-500 leading-tight">veya üye ol</span>
+                      <span className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight">Giriş Yap</span>
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-tight">veya üye ol</span>
                     </div>
                   </button>
                 </div>
               )}
+
+
+
             </div>
 
             {/* Mobile Header Actions */}
             <div className="flex md:hidden items-center gap-1.5">
+              {/* Mobile Theme Toggle Button */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2.5 text-slate-700 dark:text-amber-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl transition flex items-center justify-center min-w-[42px] min-h-[42px]"
+                aria-label="Tema Değiştir"
+              >
+                {darkMode ? <Sun className="w-4.5 h-4.5 text-amber-400 fill-amber-400" /> : <Moon className="w-4.5 h-4.5 text-slate-700" />}
+              </button>
+
               {/* Mobile Menu Drawer Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2.5 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl transition flex items-center justify-center min-w-[42px] min-h-[42px]"
+                className="p-2.5 text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition flex items-center justify-center min-w-[42px] min-h-[42px]"
                 aria-label="Menü"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
+                {isMobileMenuOpen ? <X className="w-5 h-5 text-slate-900 dark:text-slate-100" /> : <Menu className="w-5 h-5 text-slate-900 dark:text-slate-100" />}
               </button>
             </div>
 
           </div>
-
-          {/* Mobile Search Bar */}
-          <div className="md:hidden pb-3">
-            <div className="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-2 gap-2 text-xs shadow-2xs">
-              <Search className="w-4 h-4 text-slate-400 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Etkinlik veya şehir ara..."
-                className="w-full bg-transparent text-slate-800 placeholder-slate-400 focus:outline-none"
-              />
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="bg-white text-slate-700 font-bold text-xs px-2 py-1.5 rounded-lg border border-slate-200 focus:outline-none shrink-0"
-              >
-                <option value="Tüm Şehirler">Şehir</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
         </div>
 
         {/* Mobile Dropdown / Drawer Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-slate-900 text-white border-t border-slate-800 p-4 space-y-3 animate-fade-in shadow-xl">
-            {/* User status */}
-            {currentUser ? (
-              <div className="flex items-center justify-between bg-slate-800 p-3 rounded-xl border border-slate-700">
-                <div className="flex items-center gap-2.5">
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-9 h-9 rounded-lg object-cover border border-slate-600 shrink-0"
-                  />
-                  <div>
-                    <p className="text-xs font-bold text-white">{currentUser.name}</p>
-                    <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">
-                      {currentUser.role === 'organizer' ? 'Organizatör Kulüp' : 'Sporsever'}
-                    </span>
-                  </div>
+        <div className={`md:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-2xl transition-all duration-300 origin-top overflow-hidden ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}>
+          <div className="p-4 space-y-6 max-h-[calc(100vh-80px)] overflow-y-auto pb-24">
+            
+            {/* User Section */}
+            <div>
+              {currentUser ? (
+                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-3">
+                      <img src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={currentUser.name} className="w-12 h-12 rounded-xl object-cover border-2 border-white dark:border-slate-700 shadow-sm" />
+                      <div>
+                        <p className="font-bold text-slate-900 dark:text-white text-base">{currentUser.name}</p>
+                        <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{currentUser.role === 'organizer' ? 'Organizatör Kulüp' : currentUser.role === 'admin' ? 'Yönetici' : 'Sporsever'}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { onLogout(); setIsMobileMenuOpen(false); }}
+                      className="p-2 text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-500/20 transition"
+                      aria-label="Çıkış Yap"
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </button>
+                 </div>
+              ) : (
+                 <button
+                    onClick={() => { onOpenAuthModal(); setIsMobileMenuOpen(false); }}
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 transition"
+                 >
+                    <User className="w-5 h-5" />
+                    <span>Giriş Yap / Üye Ol</span>
+                 </button>
+              )}
+            </div>
+
+            {/* Menu Links */}
+            <div className="space-y-1">
+              <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 px-2">Hızlı Menü</p>
+              
+              <button
+                onClick={() => { onOpenMapView(); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 p-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition font-semibold text-left"
+              >
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                  <Map className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <button
-                  onClick={() => {
-                    onLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="px-2.5 py-1.5 text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-950/50 rounded-lg border border-rose-800/60"
-                >
-                  Çıkış Yap
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  onOpenAuthModal();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center transition"
-              >
-                <span>Giriş Yap / Üye Ol</span>
-              </button>
-            )}
-
-            {/* Quick action grid */}
-            <div className="grid grid-cols-2 gap-2 text-xs font-bold pt-1">
-              <button
-                onClick={() => {
-                  onOpenMapView();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95"
-              >
-                <Map className="w-4 h-4 text-blue-400" />
-                <span>Harita Modu</span>
+                <span className="flex-1 text-base">Harita Modu</span>
               </button>
 
               <button
-                onClick={() => {
-                  onOpenAddReview();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95"
+                onClick={() => { onOpenAddReview(); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 p-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition font-semibold text-left"
               >
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                <span>Değerlendir / Puanla</span>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                  <Star className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                </div>
+                <span className="flex-1 text-base">Değerlendir / Puanla</span>
               </button>
 
               <button
-                onClick={() => {
-                  onOpenSubmitEvent();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95"
+                onClick={() => { window.scrollTo(0,0); navigate('/kurumsal'); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 p-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition font-semibold text-left"
               >
-                <PlusCircle className="w-4 h-4 text-emerald-400" />
-                <span>Yeni Kayıt Ekle</span>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                  <Building2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <span className="flex-1 text-base">Kurumsal Üyelik</span>
               </button>
 
               {currentUser?.role === 'admin' && (
                 <button
-                  onClick={() => {
-                    navigate('/admin');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="p-3 bg-blue-950/60 hover:bg-blue-900/60 border border-blue-800/80 rounded-xl flex items-center gap-2 text-blue-200 transition active:scale-95"
+                  onClick={() => { window.scrollTo(0,0); navigate('/admin'); setIsMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 p-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition font-semibold text-left"
                 >
-                  <ShieldCheck className="w-4 h-4 text-blue-400" />
-                  <span>Yönetici Paneli</span>
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="flex-1 text-base">Yönetici Paneli</span>
                 </button>
               )}
+            </div>
 
-              <button
-                onClick={() => {
-                  handleShareBrand();
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl flex items-center gap-2 text-slate-200 transition active:scale-95 col-span-2"
-              >
-                {copiedLink ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-slate-400" />}
-                <span>{copiedLink ? 'Bağlantı Kopyalandı!' : 'sporpuan Bağlantısını Kopyala'}</span>
-              </button>
+            {/* Contact */}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+               <a
+                  href="tel:02168501907"
+                  className="flex items-center justify-between gap-4 p-4 bg-blue-50 dark:bg-slate-800 rounded-2xl transition active:scale-95 border border-blue-100 dark:border-slate-700 group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+                      <Phone className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] text-blue-600 dark:text-blue-400 font-extrabold uppercase tracking-wider mb-0.5">Destek & İletişim</span>
+                      <span className="text-lg font-black text-slate-900 dark:text-white">0216 850 19 07</span>
+                    </div>
+                  </div>
+               </a>
             </div>
 
           </div>
-        )}
+        </div>
+
       </header>
 
       {/* Sticky Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-xl md:hidden px-2 py-1.5 flex items-center justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 shadow-xl md:hidden px-4 py-2 flex items-center justify-between">
         <button
           onClick={handleResetHome}
-          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
+          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[60px] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 active:scale-95 transition"
         >
-          <Home className="w-5 h-5 text-slate-700" />
+          <Home className="w-5 h-5 text-slate-700 dark:text-slate-200" />
           <span className="text-[10px] font-bold mt-0.5">Keşfet</span>
         </button>
 
         <button
-          onClick={onOpenMapView}
-          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
-        >
-          <Map className="w-5 h-5 text-slate-700" />
-          <span className="text-[10px] font-bold mt-0.5">Harita</span>
-        </button>
-
-        <button
           onClick={onOpenAddReview}
-          className="flex flex-col items-center justify-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg -mt-3 border-2 border-white ring-4 ring-blue-100 transition active:scale-95"
+          className="flex flex-col items-center justify-center py-2 px-5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 text-white rounded-2xl shadow-lg -mt-6 border-4 border-white dark:border-slate-900 ring-2 ring-blue-100 dark:ring-blue-950 transition active:scale-95"
         >
           <Star className="w-5 h-5 fill-white text-white" />
           <span className="text-[10px] font-black mt-0.5">Puanla</span>
         </button>
 
         <button
-          onClick={onOpenSubmitEvent}
-          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
+          onClick={onOpenMapView}
+          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[60px] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 active:scale-95 transition"
         >
-          <PlusCircle className="w-5 h-5 text-slate-700" />
-          <span className="text-[10px] font-bold mt-0.5">Ekle</span>
-        </button>
-
-        <button
-          onClick={() => onOpenAuthModal()}
-          className="flex flex-col items-center justify-center py-1 px-3 min-h-[44px] min-w-[44px] text-slate-600 hover:text-blue-600 active:scale-95 transition"
-        >
-          {currentUser ? (
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-5 h-5 rounded-full object-cover border-2 border-blue-600"
-            />
-          ) : (
-            <User className="w-5 h-5 text-slate-700" />
-          )}
-          <span className="text-[10px] font-bold mt-0.5">
-            {currentUser ? 'Hesabım' : 'Giriş'}
-          </span>
+          <Map className="w-5 h-5 text-slate-700 dark:text-slate-200" />
+          <span className="text-[10px] font-bold mt-0.5">Harita</span>
         </button>
       </nav>
     </>

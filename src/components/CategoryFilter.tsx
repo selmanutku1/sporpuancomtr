@@ -24,12 +24,12 @@ interface CategoryFilterProps {
   setViewMode: (mode: 'grid' | 'map') => void;
 }
 
-const CATEGORIES_CONFIG: { category: SportsCategory; icon: React.ReactNode }[] = [
-  { category: 'Tümü', icon: <Layers className="w-4 h-4" /> },
-  { category: 'Spor Tesisleri', icon: <MapPin className="w-4 h-4" /> },
-  { category: 'Spor Salonları', icon: <Dumbbell className="w-4 h-4" /> },
-  { category: 'Spor Okulları', icon: <Baby className="w-4 h-4" /> },
-  { category: 'Spor Etkinlikleri', icon: <Trophy className="w-4 h-4" /> },
+const CATEGORIES_CONFIG: { category: SportsCategory; label: string; icon: React.ReactNode }[] = [
+  { category: 'Tümü', label: 'Tümü', icon: <Layers className="w-3.5 h-3.5" /> },
+  { category: 'Spor Tesisleri', label: 'Tesisler', icon: <MapPin className="w-3.5 h-3.5" /> },
+  { category: 'Spor Salonları', label: 'Salonlar', icon: <Dumbbell className="w-3.5 h-3.5" /> },
+  { category: 'Spor Okulları', label: 'Okullar', icon: <Baby className="w-3.5 h-3.5" /> },
+  { category: 'Spor Etkinlikleri', label: 'Etkinlikler', icon: <Trophy className="w-3.5 h-3.5" /> },
 ];
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({
@@ -42,12 +42,12 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   setViewMode,
 }) => {
   return (
-    <div className="bg-white border-b border-slate-200 py-4 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-1 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-1">
         
         {/* Category Pills Slider */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none w-full md:w-auto">
-          {CATEGORIES_CONFIG.map(({ category, icon }) => {
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none w-full md:w-auto">
+          {CATEGORIES_CONFIG.map(({ category, label, icon }) => {
             const isSelected = selectedCategory === category;
             const count = categoryCounts[category] || 0;
 
@@ -55,21 +55,21 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               <button
                 key={category}
                 onClick={() => onSelectCategory(category)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0 ${
+                className={`group flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all duration-200 shrink-0 ${
                   isSelected
-                    ? 'bg-blue-600 text-white font-bold shadow-sm'
-                    : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white font-bold shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-blue-700 dark:hover:text-white hover:bg-blue-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
                 }`}
               >
-                <span className={isSelected ? 'text-white' : 'text-blue-600'}>
+                <span className={isSelected ? 'text-white' : 'text-blue-600 dark:text-blue-400'}>
                   {icon}
                 </span>
-                <span>{category}</span>
+                <span>{label}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                  className={`text-[9px] px-1 py-0 rounded-full font-mono transition-colors ${
                     isSelected
-                      ? 'bg-blue-800 text-white font-bold'
-                      : 'bg-slate-200 text-slate-600'
+                      ? 'bg-blue-800 dark:bg-blue-700 text-white font-bold'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 group-hover:bg-blue-200 group-hover:text-blue-800 dark:group-hover:bg-slate-600 dark:group-hover:text-white'
                   }`}
                 >
                   {count}
@@ -80,45 +80,45 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         </div>
 
         {/* View Mode Toggle & Sort dropdown */}
-        <div className="flex items-center justify-between md:justify-end gap-3 text-xs text-slate-500 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap pt-1 md:pt-0 border-t border-slate-100 md:border-t-0">
+        <div className="flex items-center justify-between md:justify-end gap-3 text-xs text-slate-500 dark:text-slate-400 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap pt-1 md:pt-0 border-t border-slate-100 dark:border-slate-800 md:border-t-0">
           
           {/* Grid vs Map Toggle */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md font-semibold text-[11px] transition ${
                 viewMode === 'grid'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-3 h-3" />
               <span>Liste</span>
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md font-semibold text-[11px] transition ${
                 viewMode === 'map'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>Harita Modu</span>
+              <MapPin className="w-3 h-3" />
+              <span>Harita</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-slate-700 hidden sm:inline">Sıralama:</span>
+          <div className="flex items-center gap-1">
+            <span className="font-semibold text-slate-700 dark:text-slate-300 hidden sm:inline text-[11px]">Sırala:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-white text-slate-800 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-blue-500 font-bold text-xs cursor-pointer shadow-2xs"
+              className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 font-semibold text-[11px] cursor-pointer shadow-2xs"
             >
-              <option value="score-desc">En Yüksek Puan (SporPuan)</option>
-              <option value="reviews-desc">En Çok Yorum Alanlar</option>
-              <option value="date-asc">Yaklaşan Etkinlikler</option>
-              <option value="title-asc">A-Z İsim</option>
+              <option value="score-desc" className="bg-white dark:bg-slate-800">En Yüksek Puan (Sporpuan)</option>
+              <option value="reviews-desc" className="bg-white dark:bg-slate-800">En Çok Yorum Alanlar</option>
+              <option value="date-asc" className="bg-white dark:bg-slate-800">Yaklaşan Etkinlikler</option>
+              <option value="title-asc" className="bg-white dark:bg-slate-800">A-Z İsim</option>
             </select>
           </div>
 

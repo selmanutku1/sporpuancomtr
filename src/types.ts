@@ -35,7 +35,39 @@ export interface Review {
   cons: string[];
   likes: number;
   userPhotos?: string[];
+  verificationDocs?: { name: string; url: string; type: 'image' | 'document' }[];
   tags: string[];
+  status?: 'published' | 'pending' | 'hidden';
+  adminReply?: string;
+  adminReplyDate?: string;
+}
+
+export interface CorporateApplication {
+  id: string;
+  refCode: string;
+  facilityName: string;
+  category: SportsCategory;
+  city: string;
+  district: string;
+  address?: string;
+  contactName: string;
+  contactTitle?: string;
+  contactEmail: string;
+  contactPhone: string;
+  website?: string;
+  capacity?: string;
+  amenities: string[];
+  imageUrl?: string;
+  description?: string;
+  taxOffice?: string;
+  taxNumber?: string;
+  licenseNumber?: string;
+  workingHours?: string;
+  membershipFeeRange?: string;
+  adminNotes?: string;
+  publishedFacilityId?: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended';
 }
 
 export interface SportsEvent {
@@ -59,6 +91,7 @@ export interface SportsEvent {
   featured: boolean;
   tags: string[];
   reviews: Review[];
+  isActive?: boolean;
   latitude?: number;
   longitude?: number;
   sourceProvider?: string;
