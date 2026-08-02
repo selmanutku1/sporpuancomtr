@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { SportsEvent, SportsCategory } from '../types';
-import { X, CheckCircle2, Calendar, MapPin, Ticket, Trophy, Upload, Image as ImageIcon, Trash2, RefreshCw, Sparkles, Check, Edit3, Save } from 'lucide-react';
+import { X, CheckCircle2, Calendar, MapPin, Ticket, Trophy, Upload, Image as ImageIcon, Trash2, RefreshCw, Sparkles, Check, Edit3, Save, Eye, EyeOff } from 'lucide-react';
 
 interface EditEventModalProps {
   event: SportsEvent;
@@ -25,6 +25,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [description, setDescription] = useState(event.summary || '');
   const [ticketUrl, setTicketUrl] = useState(event.ticketUrl || '');
   const [image, setImage] = useState(event.image);
+  const [isActive, setIsActive] = useState<boolean>(event.isActive !== false);
   const [isCustomUploaded, setIsCustomUploaded] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -131,6 +132,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       summary: description.trim() || event.summary,
       ticketUrl: ticketUrl.trim() || event.ticketUrl,
       image,
+      isActive,
     };
 
     onUpdateEvent(updatedEvent);
@@ -364,6 +366,45 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                   placeholder="Etkinlik hakkında önemli detaylar..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-medium"
                 />
+              </div>
+
+              {/* Yayın Durumu (Yayından Kaldır / Gizle / Yayına Al) */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-slate-800 text-xs">Yayın Durumu</span>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      {isActive ? 'Yayında' : 'Yayından Kaldırıldı (Gizli)'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                    {isActive 
+                      ? 'Tesis tüm ziyaretçilere açık ve listelerde görünür.' 
+                      : 'Tesis yayından kaldırıldı (gizlendi). Sadece yöneticiler görebilir.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsActive(!isActive)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                    isActive
+                      ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300'
+                      : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300'
+                  }`}
+                >
+                  {isActive ? (
+                    <>
+                      <EyeOff className="w-4 h-4 text-amber-600" />
+                      <span>Yayından Kaldır (Gizle)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4 text-emerald-600" />
+                      <span>Yayına Al (Göster)</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Submit Buttons */}

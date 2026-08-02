@@ -25,8 +25,14 @@ export const INITIAL_EVENTS: SportsEvent[] = [
       biletFiyat: 7.2
     },
     reviewCount: 450,
-    featured: true,
+    featured: false,
     tags: ['Futbol', 'Süper Lig', 'Derbi'],
+    aiSummary: {
+      tr: 'RAMS Park derbi atmosferi ve tribün akustiği seyircilerden tam not almaktadır. Giriş turnikelerindeki yoğunluk ve maç sonu otopark çıkış süreleri haricinde organizasyon akışı son derece başarılıdır.',
+      en: 'The derbi atmosphere and stadium acoustics at RAMS Park receive top ratings from fans. Despite crowd bottlenecks at entry turnstiles and post-match parking delays, the overall event execution is highly impressive.',
+      highlightsTr: ['Devamlı Tribün Coşkusu', 'Yüksek Güvenlik Önlemleri', 'Otopark Yoğunluğu'],
+      highlightsEn: ['Electric Stadium Atmosphere', 'Strict Safety Measures', 'Heavy Post-Match Traffic']
+    },
     reviews: [
       {
         id: 'r1',
@@ -41,11 +47,52 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           atmosferSeyir: 9.8,
           biletFiyat: 7.2
         },
-        comment: 'Atmosfer mükemmeldi, ancak stadyuma giriş çıkışlarda çok sıra bekledik.',
-        pros: ['Harika Atmosfer', 'Stadyum Akustiği'],
-        cons: ['Otopark Sorunu', 'Yüksek Bilet Fiyatı'],
+        comment: 'Atmosfer mükemmeldi, tribün akustiği inanılmaz coşkulu. Ancak stadyuma giriş çıkışlarda turnikelerde çok sıra bekledik.',
+        englishComment: 'The atmosphere was unmatched and the stadium acoustics were electric. However, we experienced long queues at the entry turnstiles.',
+        pros: ['Harika Atmosfer', 'Stadyum Akustiği', 'Net Görüş Açısı'],
+        cons: ['Otopark Yoğunluğu', 'Yüksek Bilet Fiyatı'],
         likes: 120,
         tags: ['Atmosfer', 'Trafik']
+      },
+      {
+        id: 'r1-2',
+        userName: 'Selin Erdem',
+        verifiedAttendee: true,
+        date: '21 Ekim 2026',
+        overallScore: 9.2,
+        scores: {
+          organizasyonAkis: 9.0,
+          parkurGuvenlik: 9.5,
+          kitIkram: 8.5,
+          atmosferSeyir: 10.0,
+          biletFiyat: 8.0
+        },
+        comment: 'Stadyum içi yönlendirmeler ve özel güvenlik personeli çok yardımcı oldu. Taraftar şovları unutulmaz bir deneyim sundu.',
+        englishComment: 'Stadium signage and security personnel were very helpful. The fan displays and choreographies offered an unforgettable experience.',
+        pros: ['Başarılı Güvenlik', 'Unutulmaz Şovlar'],
+        cons: ['Büfe Kuyrukları'],
+        likes: 84,
+        tags: ['Organizasyon', 'Coşku']
+      },
+      {
+        id: 'r1-3',
+        userName: 'Burak Demir',
+        verifiedAttendee: true,
+        date: '22 Ekim 2026',
+        overallScore: 8.4,
+        scores: {
+          organizasyonAkis: 8.0,
+          parkurGuvenlik: 8.5,
+          kitIkram: 7.5,
+          atmosferSeyir: 9.5,
+          biletFiyat: 6.5
+        },
+        comment: 'Metroya ulaşım maç sonu biraz zaman alıyor fakat stadyum içi konfor ve ikram alanı kalitesi çok yüksek.',
+        englishComment: 'Reaching the metro after the match takes some time, but the stadium interior comfort and catering zone quality are very high.',
+        pros: ['Konforlu Koltuklar', 'Kaliteli Büfe'],
+        cons: ['Metro Kalabalığı'],
+        likes: 42,
+        tags: ['Metro', 'Konfor']
       }
     ],
     latitude: 41.1034,
@@ -75,12 +122,18 @@ export const INITIAL_EVENTS: SportsEvent[] = [
       fiyatUyelik: 7.5
     },
     reviewCount: 125,
-    featured: true,
+    featured: false,
     tags: ['Fitness', 'Gym', 'Levent'],
+    aiSummary: {
+      tr: 'Levent merkezindeki lokasyonu ve modern ekipman çeşitliliği tesisin en güçlü yanlarıdır. İş çıkış saatlerinde (18:00 - 20:30) oluşan kalabalık dışında temizlik ve cardio olanakları üst seviyededir.',
+      en: 'Its prime central Levent location and modern equipment variety are key strengths. Apart from peak post-work rush hours (6:00 PM - 8:30 PM), hygiene standards and cardio facilities are top notch.',
+      highlightsTr: ['Son Teknoloji Ekipman', 'Merkezi Lokasyon', 'Akşam Saatleri Kalabalık'],
+      highlightsEn: ['State-of-the-art Equipment', 'Central Location', 'Peak Hour Crowds']
+    },
     reviews: [
       {
         id: 'r2',
-        userName: 'Zeynep K.',
+        userName: 'Zeynep Kaya',
         verifiedAttendee: true,
         date: '10 Ekim 2026',
         overallScore: 7.8,
@@ -91,11 +144,32 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           yogunlukAtmosfer: 6.5,
           fiyatUyelik: 7.5
         },
-        comment: 'Akşam saatlerinde çok kalabalık oluyor ama genel olarak temiz ve ekipmanlar yeterli.',
-        pros: ['Merkezi Konum', 'Temizlik'],
+        comment: 'Akşam saatlerinde çok kalabalık oluyor ama genel olarak temiz ve serbest ağırlık ekipmanları gayet yeterli.',
+        englishComment: 'Gets very crowded in the evenings, but overall clean and free weight equipment is more than sufficient.',
+        pros: ['Merkezi Konum', 'Yüksek Temizlik Standardı'],
         cons: ['Akşam Yoğunluğu', 'Eğitmen İlgisizliği'],
         likes: 45,
         tags: ['Kalabalık', 'Temiz']
+      },
+      {
+        id: 'r2-2',
+        userName: 'Mert Aksoy',
+        verifiedAttendee: true,
+        date: '18 Ekim 2026',
+        overallScore: 8.4,
+        scores: {
+          ekipmanCesit: 9.0,
+          hijyenFerahlik: 8.5,
+          antrenorDestegi: 7.5,
+          yogunlukAtmosfer: 8.0,
+          fiyatUyelik: 8.0
+        },
+        comment: 'Sabah 07:00 seansında sakin ve son derece keyifli. Soyunma odalarındaki duşların bakımı çok iyi.',
+        englishComment: 'Very calm and enjoyable during the 7:00 AM session. Locker room showers are very well-maintained.',
+        pros: ['Sabah Sakinliği', 'Steril Soyunma Odaları'],
+        cons: ['Otopark Ücretli'],
+        likes: 29,
+        tags: ['Sabah Antrenmanı', 'Hijyen']
       }
     ],
     latitude: 41.0772,
@@ -127,6 +201,12 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     reviewCount: 85,
     featured: false,
     tags: ['Futbol Okulu', 'Çocuk', 'Eğitim'],
+    aiSummary: {
+      tr: 'Dereağzı Tesisleri altyapı antrenörlerinin uzmanlığı ve çocuklarla iletişimi velilerden büyük takdir almaktadır. Saha kalitesi ve disiplin ilkeleri üst düzeydedir.',
+      en: 'The expertise and child pedagogy of the Dereağzı academy coaches earn high praise from parents. Pitch condition and discipline principles are exceptional.',
+      highlightsTr: ['Lisanslı Uzman Kadro', 'Disiplinli Müfredat', 'Güvenli Tesis'],
+      highlightsEn: ['Certified Expert Staff', 'Disciplined Curriculum', 'Secure Facility']
+    },
     reviews: [
       {
         id: 'r3',
@@ -141,11 +221,32 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           tesisEkipman: 8.8,
           fiyatIletisim: 8.5
         },
-        comment: 'Çocuğum büyük bir keyifle gidiyor, hocalar gerçekten çok ilgili ve alanında uzman.',
-        pros: ['Profesyonel Eğitmenler', 'Harika Tesisler'],
-        cons: ['Biraz Uzak'],
+        comment: 'Çocuğum büyük bir keyifle gidiyor, hocalar gerçekten çok ilgili ve alanında uzman sporcu ahlakını çok iyi aşılıyorlar.',
+        englishComment: 'My child goes with absolute joy! Coaches are very attentive, highly expert, and instill strong athletic morals.',
+        pros: ['Profesyonel Eğitmenler', 'Harika Tesisler', 'Disiplin'],
+        cons: ['Ulaşım Bazen Yoğun'],
         likes: 22,
         tags: ['Eğitim Kalitesi', 'İlgili Personel']
+      },
+      {
+        id: 'r3-2',
+        userName: 'Hande Öztürk',
+        verifiedAttendee: true,
+        date: '15 Eylül 2026',
+        overallScore: 9.0,
+        scores: {
+          egitmenKalitesi: 9.5,
+          mufredatGelisim: 9.0,
+          guvenlikDisiplin: 9.2,
+          tesisEkipman: 8.5,
+          fiyatIletisim: 8.8
+        },
+        comment: 'Veliler için tribün izleme alanı rahat, turnuvalar ve gelişim raporları düzenli olarak iletiliyor.',
+        englishComment: 'Parent viewing area is comfortable; student development reports and tournaments are shared regularly.',
+        pros: ['Düzenli Raporlama', 'Geniş İzleme Tribünü'],
+        cons: ['Kafeterya Fiyatları'],
+        likes: 18,
+        tags: ['Veli Memnuniyeti', 'Altyapı']
       }
     ],
     latitude: 40.9763,
@@ -177,6 +278,12 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     reviewCount: 310,
     featured: false,
     tags: ['Basketbol', 'Tesis Kiralama', 'Kapalı Salon'],
+    aiSummary: {
+      tr: 'Basketbol zemin kalitesi ve uluslararası standartlardaki potaları tesisin en güçlü yanıdır. Büyük maç günlerinde otopark kısıtı yaşanabilse de saha kiralama ve ışıklandırma mükemmeldir.',
+      en: 'Court flooring and FIBA-standard basketball hoops represent the facility\'s highlights. While parking fills up on major match days, court rentals and lighting setup remain top-tier.',
+      highlightsTr: ['Uluslararası Zemin Standardı', 'Güçlü Aydınlatma', 'Maç Günü Otopark Sıkıntısı'],
+      highlightsEn: ['FIBA Standard Flooring', 'Bright Arena Lighting', 'Match-Day Parking Congestion']
+    },
     reviews: [
       {
         id: 'r4',
@@ -191,11 +298,32 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           ulasimOtopark: 6.2,
           fiyatHizmet: 7.8
         },
-        comment: 'Tesis çok büyük ve imkanları güzel, ama otopark sorunu ciddi boyutta. Personel bazen ilgisiz.',
-        pros: ['Tesis Büyüklüğü', 'Zemin Kalitesi'],
-        cons: ['Otopark Yetersizliği', 'Personel İletişimi'],
+        comment: 'Tesis çok büyük ve zemin imkanları mükemmel, ancak dev etkinlik günlerinde otopark girişi zaman alabiliyor.',
+        englishComment: 'Facility is massive and court flooring is excellent, though parking access takes time on major event days.',
+        pros: ['Tesis Büyüklüğü', 'Ahşap Zemin Kalitesi'],
+        cons: ['Otopark Yetersizliği'],
         likes: 67,
         tags: ['Park Yeri Yok', 'Ferah Ortam']
+      },
+      {
+        id: 'r4-2',
+        userName: 'Ege Kuru',
+        verifiedAttendee: true,
+        date: '20 Kasım 2026',
+        overallScore: 8.6,
+        scores: {
+          zeminSaha: 9.5,
+          soyunmaHijyen: 8.8,
+          ekipmanAydinlatma: 9.0,
+          ulasimOtopark: 7.0,
+          fiyatHizmet: 8.0
+        },
+        comment: 'Hafta içi amatör lig maçları için kiraladık. Soyunma odalarındaki sıcak su ve hijyen harikaydı.',
+        englishComment: 'Rented for amateur league matches on a weekday. Hot water and locker room cleanliness were brilliant.',
+        pros: ['Sıcak Duşlar', 'Harika Işıklandırma'],
+        cons: ['Kantin Seçenekleri Az'],
+        likes: 35,
+        tags: ['Saha Kiralama', 'Temiz Soyunma']
       }
     ],
     latitude: 40.9902,
@@ -227,10 +355,16 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     reviewCount: 205,
     featured: true,
     tags: ['Yüzme', 'Olimpik Havuz', 'Su Sporları'],
+    aiSummary: {
+      tr: 'Ankara Eryaman\'daki olimpik havuz, su sıcaklığı dengesi, klor filtreleme kalitesi ve geniş kulvar imkanıyla yüzücülerden tam not almaktadır.',
+      en: 'The Eryaman Olympic Pool in Ankara receives outstanding reviews for its water temperature balance, advanced filtration system, and ample swim lanes.',
+      highlightsTr: ['Steril Havuz Suyu', 'Geniş Kulvar Alanı', 'Hafta Sonu Yoğunluğu'],
+      highlightsEn: ['Sterile Pool Water', 'Spacious Swim Lanes', 'Weekend Family Crowds']
+    },
     reviews: [
       {
         id: 'r5',
-        userName: 'Aylin Ç.',
+        userName: 'Aylin Çelik',
         verifiedAttendee: true,
         date: '12 Ağustos 2026',
         overallScore: 8.9,
@@ -241,11 +375,32 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           ulasimOtopark: 8.0,
           fiyatHizmet: 8.8
         },
-        comment: 'Çok temiz bir havuz, su sıcaklığı ve klor oranı ideal. Sadece haftasonları çok çocuklu aile olduğu için kalabalık oluyor.',
-        pros: ['Temizlik ve Hijyen', 'Uygun Fiyat'],
+        comment: 'Çok temiz bir havuz, su sıcaklığı ve klor oranı ideal. Cankurtaran ekibi sürekli kulvar takibi yapıyor.',
+        englishComment: 'Extremely clean pool; water temperature and chlorination level are ideal. Lifeguards actively monitor swim lanes.',
+        pros: ['Temizlik ve Hijyen', 'Uygun Fiyat', 'Cankurtaran İlgisi'],
         cons: ['Haftasonu Kalabalığı'],
         likes: 88,
         tags: ['Temiz Su', 'Aile Ortamı']
+      },
+      {
+        id: 'r5-2',
+        userName: 'Tarkan Özen',
+        verifiedAttendee: true,
+        date: '25 Ağustos 2026',
+        overallScore: 9.1,
+        scores: {
+          zeminSaha: 9.6,
+          soyunmaHijyen: 9.2,
+          ekipmanAydinlatma: 9.0,
+          ulasimOtopark: 8.5,
+          fiyatHizmet: 9.0
+        },
+        comment: 'Sabah 06:30 antrenmanlarında performans kulvarları boş ve su berraklığı harika. Soyunma dolapları dijital sistemli.',
+        englishComment: 'Early morning 6:30 AM sessions feature empty performance lanes and crystal-clear water. Lockers use modern digital keypads.',
+        pros: ['Berrak Havuz Suyu', 'Dijital Dolaplar'],
+        cons: ['B bone Zorunluluğu'],
+        likes: 54,
+        tags: ['Yüzme', 'Performans']
       }
     ],
     latitude: 39.9575,
@@ -277,10 +432,16 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     reviewCount: 92,
     featured: false,
     tags: ['CrossFit', 'Vücut Geliştirme', 'Karşıyaka'],
+    aiSummary: {
+      tr: 'Karşıyaka\'da serbest ağırlık çeşitliliği (60 kg dambıl skalamız) ve yüksek enerjili müzik atmosferiyle ağırlık sporcularının gözdesidir.',
+      en: 'A top favorite for heavy lifters in Karşıyaka thanks to free weight options (dumbbells up to 60 kg) and an energetic workout environment.',
+      highlightsTr: ['Zengin Serbest Ağırlık', 'Motive Edici Atmosfer', 'Ağırlık Platformları'],
+      highlightsEn: ['Vast Free-Weight Selection', 'Motivating Vibe', 'Deadlift Platforms']
+    },
     reviews: [
       {
         id: 'r6',
-        userName: 'Mert T.',
+        userName: 'Mert Tekin',
         verifiedAttendee: true,
         date: '04 Eylül 2026',
         overallScore: 9.3,
@@ -291,11 +452,32 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           yogunlukAtmosfer: 9.0,
           fiyatUyelik: 9.2
         },
-        comment: 'Ekipmanlar mükemmel, gerçek bir hardcore spor salonu atmosferi var. Müzikler de harika!',
+        comment: 'Ekipmanlar mükemmel, gerçek bir hardcore spor salonu atmosferi var. Müzikler de antrenman temposunu yükseltiyor!',
+        englishComment: 'Equipment is top-notch with an authentic hardcore gym atmosphere. Playlists elevate workout intensity!',
         pros: ['Serbest Ağırlık Çeşitliliği', 'Harika Atmosfer'],
         cons: ['Havalandırma Bazen Yetersiz'],
         likes: 31,
         tags: ['Hardcore Gym', 'Ağırlıklar']
+      },
+      {
+        id: 'r6-2',
+        userName: 'Bora Güven',
+        verifiedAttendee: true,
+        date: '14 Eylül 2026',
+        overallScore: 9.4,
+        scores: {
+          ekipmanCesit: 9.7,
+          hijyenFerahlik: 9.0,
+          antrenorDestegi: 9.5,
+          yogunlukAtmosfer: 9.2,
+          fiyatUyelik: 9.3
+        },
+        comment: 'CrossFit parkuru ve barbell platformları çok kaliteli. Koçlar form kontrolüne dikkat ediyor.',
+        englishComment: 'CrossFit rig and barbell platforms are high quality. Coaches pay close attention to lifting form.',
+        pros: ['Profesyonel Koçlar', 'Geniş CrossFit Rig'],
+        cons: ['Park Yeri Kısıtlı'],
+        likes: 19,
+        tags: ['CrossFit', 'Koçluk']
       }
     ],
     latitude: 38.4550,
@@ -327,10 +509,16 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     reviewCount: 65,
     featured: true,
     tags: ['Yelken', 'Deniz Sporları', 'Kurs'],
+    aiSummary: {
+      tr: 'İzmir Güzelyalı sahilinde deneyimli kaptanlar ve eğitmenlerle Ege denizinde yelken sporunu öğrenmek için ideal bir lokasyondur.',
+      en: 'Located on the Izmir Güzelyalı coast, this venue offers an ideal setting to learn sailing in the Aegean with seasoned captains.',
+      highlightsTr: ['Deneyimli Kaptanlar', 'Güzelyalı Sahil Konumu', 'Ekipman Bakım İhtiyacı'],
+      highlightsEn: ['Seasoned Captains', 'Güzelyalı Coastline', 'Fleet Maintenance Needs']
+    },
     reviews: [
       {
         id: 'r7',
-        userName: 'Burcu Y.',
+        userName: 'Burcu Yılmaz',
         verifiedAttendee: true,
         date: '18 Mayıs 2026',
         overallScore: 8.5,
@@ -341,17 +529,37 @@ export const INITIAL_EVENTS: SportsEvent[] = [
           ulasimOtopark: 8.0,
           fiyatHizmet: 8.6
         },
-        comment: 'Hocalarımız çok yetkin. Ancak tekneler biraz eski, yenilenmesi gerekiyor.',
+        comment: 'Hocalarımız son derece yetkin ve rüzgar okumayı harika öğretiyorlar. Tesis lokasyonu Ege manzarasında büyüleyici.',
+        englishComment: 'Instructors are extremely skilled and teach wind reading thoroughly. Location boasts stunning Aegean views.',
         pros: ['Uzman Eğitmen Kadrosu', 'Mükemmel Lokasyon'],
-        cons: ['Eski Ekipmanlar', 'Fiyat Biraz Yüksek'],
+        cons: ['Teknelerin Yenilenme İhtiyacı'],
         likes: 12,
         tags: ['Eğitim', 'Manzara']
+      },
+      {
+        id: 'r7-2',
+        userName: 'Kaan Sezer',
+        verifiedAttendee: true,
+        date: '28 Mayıs 2026',
+        overallScore: 8.7,
+        scores: {
+          zeminSaha: 9.0,
+          soyunmaHijyen: 8.5,
+          ekipmanAydinlatma: 8.5,
+          ulasimOtopark: 8.2,
+          fiyatHizmet: 8.5
+        },
+        comment: 'Deniz güvenliği ekipmanları ve can yelekleri sıfır ayarında. Teorik ders anlatımı çok bilgilendirici.',
+        englishComment: 'Sea safety gear and life jackets are in mint condition. Theory lectures are deeply informative.',
+        pros: ['Sıkı Güvenlik Standardı', 'Anlaşılır Teorik Eğitim'],
+        cons: ['Hafta Sonu Yoğunluğu'],
+        likes: 8,
+        tags: ['Güvenlik', 'Deniz']
       }
     ],
     latitude: 38.3965,
     longitude: 27.0864,
-  }
-  ,
+  },
   {
     id: 'school-1',
     title: 'Galatasaray Futbol Okulu (Florya)',
@@ -370,7 +578,42 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: true,
     isActive: true,
     tags: ['Futbol', 'Altyapı', 'Çocuk Sporu'],
-    reviews: []
+    aiSummary: {
+      tr: 'Florya Metin Oktay Tesisleri çim kalitesi, disiplinli antrenör kadrosu ve köklü futbol kültürüyle genç sporcular için örnek bir akademidir.',
+      en: 'Florya Metin Oktay Facilities offer pristine pitches, disciplined coaches, and an iconic academy culture for youth development.',
+      highlightsTr: ['Florya Çim Sahaları', 'Milli Lisanslı Hocalar', 'Kafeterya Kalabalığı'],
+      highlightsEn: ['Natural Grass Pitches', 'National Level Coaches', 'Cafeteria Crowds']
+    },
+    reviews: [
+      {
+        id: 'r-sch1-1',
+        userName: 'Deniz Güneş',
+        verifiedAttendee: true,
+        date: '10 Haziran 2026',
+        overallScore: 9.2,
+        scores: { antrenor: 9.6, tesis: 9.2, hijyen: 8.8 },
+        comment: 'Oğlum Florya\'da çalışmaktan gurur duyuyor. Hocaların pedagojik yaklaşımı ve teknik çalışma programı harika.',
+        englishComment: 'My son is proud to train at Florya. The pedagogical approach of the coaches and technical drills are wonderful.',
+        pros: ['Disiplinli Antrenman', 'Kaliteli Çim Zemin'],
+        cons: ['Giriş Kartı Sırası'],
+        likes: 34,
+        tags: ['Altyapı', 'Florya']
+      },
+      {
+        id: 'r-sch1-2',
+        userName: 'Murat Kahraman',
+        verifiedAttendee: true,
+        date: '22 Haziran 2026',
+        overallScore: 9.0,
+        scores: { antrenor: 9.4, tesis: 8.8, hijyen: 8.5 },
+        comment: 'Futbol tekniğinin yanında sporcu ahlakı ve beslenme disiplini de kazandırılıyor. Veliler için tribün ferah.',
+        englishComment: 'Teaches athletic morals and nutrition alongside football technique. Viewing stands are spacious for parents.',
+        pros: ['Sporcu Disiplini', 'Rahat İzleme Alanı'],
+        cons: ['Otopark Ücreti'],
+        likes: 21,
+        tags: ['Disiplin', 'Veli Tribünü']
+      }
+    ]
   },
   {
     id: 'school-2',
@@ -390,7 +633,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Basketbol', 'Voleybol', 'Futbol'],
-    reviews: []
+    aiSummary: {
+      tr: 'Dereağzı Lefter Küçükandonyadis Tesisleri çoklu branş (basketbol, futbol, voleybol) yapısıyla çocukların spor disiplinini erken yaşta kazanmasını sağlar.',
+      en: 'Dereağzı Lefter Küçükandonyadis Complex excels in multi-sport youth development (basketball, football, volleyball) with strong discipline.',
+      highlightsTr: ['Çoklu Branş Seçenekleri', 'Deneyimli Altyapı Kadrosu', 'Servis Düzeni'],
+      highlightsEn: ['Multi-Sport Options', 'Experienced Youth Coaches', 'Organized Shuttles']
+    },
+    reviews: [
+      {
+        id: 'r-sch2-1',
+        userName: 'Ozan Kaan',
+        verifiedAttendee: true,
+        date: '04 Temmuz 2026',
+        overallScore: 9.0,
+        scores: { antrenor: 9.3, tesis: 8.9, hijyen: 8.7 },
+        comment: 'Dereağzı salonlarındaki havalandırma ve parke kalitesi mükemmel. Basketbol ve voleybol için harika ortam.',
+        englishComment: 'Ventilation and hardwood court quality at Dereağzı halls are great. Perfect environment for basketball and volleyball.',
+        pros: ['Kaliteli Parke Zemin', 'İlgili Koçlar'],
+        cons: ['Kadıköy Trafiği'],
+        likes: 19,
+        tags: ['Basketbol', 'Voleybol']
+      }
+    ]
   },
   {
     id: 'school-3',
@@ -410,7 +674,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Basketbol', 'Altyapı'],
-    reviews: []
+    aiSummary: {
+      tr: 'Akatlar Spor Kompleksi parke zemini ve antrenör tecrübesiyle çocuklara fundamental basketbol eğitimini yüksek kalitede sunmaktadır.',
+      en: 'Akatlar Sports Complex delivers high-quality fundamental basketball drills supported by professional parquet courts and experienced coaches.',
+      highlightsTr: ['Akatlar Parke Zemin', 'Fundamental Odaklı', 'Ulaşım Kolaylığı'],
+      highlightsEn: ['Pro Parquet Courts', 'Fundamental Drills', 'Easy Access']
+    },
+    reviews: [
+      {
+        id: 'r-sch3-1',
+        userName: 'Sarp Ünal',
+        verifiedAttendee: true,
+        date: '12 Mayıs 2026',
+        overallScore: 8.8,
+        scores: { antrenor: 9.0, tesis: 8.6, hijyen: 8.8 },
+        comment: 'Akatlar salonunun havası ve pota kalitesi tam profesyonel seviyede. Antrenörler şut ve top hakimiyeti üzerine titizlikle duruyor.',
+        englishComment: 'Akatlar arena atmosphere and hoop quality are professional-grade. Coaches pay diligent attention to shooting and ball handling.',
+        pros: ['Profesyonel Potalar', 'Şut Tekniği Eğitimi'],
+        cons: ['Hafta Sonu Otoparkı'],
+        likes: 15,
+        tags: ['Basketbol', 'Akatlar']
+      }
+    ]
   },
   {
     id: 'school-4',
@@ -430,7 +715,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: true,
     isActive: true,
     tags: ['Voleybol', 'Kız Sporu', 'Profesyonel'],
-    reviews: []
+    aiSummary: {
+      tr: 'Ayazağa Spor Salonu\'nda verilen voleybol eğitimi steril ortamı, dünya standartlarındaki esnek tara tara fileleri ve usta antrenörleriyle 10 üzerinden 10 puan almaktadır.',
+      en: 'Eczacıbaşı Volleyball School in Ayazağa scores top marks for its sterile facilities, world-class net setups, and master-level youth coaching.',
+      highlightsTr: ['Dünya Şampiyonu Altyapı', 'Steril Tesis Hijyeni', 'Bilimsel Sporcu Takibi'],
+      highlightsEn: ['World-Class Academy', 'Sterile Hygiene', 'Scientific Athlete Tracking']
+    },
+    reviews: [
+      {
+        id: 'r-sch4-1',
+        userName: 'Elif Alkan',
+        verifiedAttendee: true,
+        date: '18 Temmuz 2026',
+        overallScore: 9.6,
+        scores: { antrenor: 9.9, tesis: 9.4, hijyen: 9.5 },
+        comment: 'Kızım için harika bir okul. Eczacıbaşı kültürünü küçük yaşta almak büyük şans. Soyunma odaları ve salon pırıl pırıl.',
+        englishComment: 'An absolute dream school for my daughter. Gaining Eczacıbaşı culture early is a true blessing. Cleanliness is 10/10.',
+        pros: ['Steril Hijyen', 'Dünya Seviyesinde Koçluk', 'Gelişim Takibi'],
+        cons: ['Kayıt Kontenjanı Çabuk Doluyor'],
+        likes: 47,
+        tags: ['Voleybol', 'Eczacıbaşı']
+      }
+    ]
   },
   {
     id: 'school-5',
@@ -450,7 +756,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Basketbol', 'Altyapı'],
-    reviews: []
+    aiSummary: {
+      tr: 'Ayhan Şahenk Spor Salonu basketbol altyapısında akademik disiplin ile teknik basketbol becerileri harmanlanmaktadır.',
+      en: 'Ayhan Şahenk Arena combines academic discipline with elite youth basketball skill development.',
+      highlightsTr: ['Ayhan Şahenk Kompleksi', 'Akademik & Sporcu İklimi', 'Sert Parke Kalitesi'],
+      highlightsEn: ['Ayhan Şahenk Complex', 'Academic Athletic Balance', 'Solid Parquet']
+    },
+    reviews: [
+      {
+        id: 'r-sch5-1',
+        userName: 'Kerem Turgut',
+        verifiedAttendee: true,
+        date: '02 Ağustos 2026',
+        overallScore: 9.1,
+        scores: { antrenor: 9.5, tesis: 8.8, hijyen: 9.0 },
+        comment: 'Ayhan Şahenk salonunda çalışmak çocuklara profesyonel atmosfer hissettiriyor. Koç kadrosu çok disiplinli.',
+        englishComment: 'Training at Ayhan Şahenk arena gives kids a pro feeling. The coaching staff maintains excellent discipline.',
+        pros: ['Profesyonel Atmosfer', 'Köklü Altyapı'],
+        cons: ['Metro Yürüyüş Mesafesi'],
+        likes: 26,
+        tags: ['Darüşşafaka', 'Basketbol']
+      }
+    ]
   },
   {
     id: 'school-6',
@@ -470,7 +797,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: true,
     isActive: true,
     tags: ['Voleybol', 'Profesyonel', 'Avrupa Yakası'],
-    reviews: []
+    aiSummary: {
+      tr: 'VakıfBank Spor Sarayı, fitness salonu, fizyoterapi alanı ve profesyonel voleybol sahalarıyla Türkiye\'deki en lüks ve nitelikli voleybol kompleksi kabul ediliyor.',
+      en: 'VakıfBank Sports Palace stands out as Turkey\'s premier volleyball complex featuring pro halls, physical therapy rooms, and top-tier training.',
+      highlightsTr: ['VakıfBank Spor Sarayı Lüksü', 'Dünya Çapında Altyapı', 'Steril Soyunma Alanları'],
+      highlightsEn: ['VakıfBank Palace Luxury', 'World Championship Academy', 'Sterile Locker Rooms']
+    },
+    reviews: [
+      {
+        id: 'r-sch6-1',
+        userName: 'Nazlı Çetin',
+        verifiedAttendee: true,
+        date: '14 Ağustos 2026',
+        overallScore: 9.5,
+        scores: { antrenor: 9.8, tesis: 9.6, hijyen: 9.2 },
+        comment: 'VakıfBank Spor Sarayı muazzam bir tesis. Kızımızın gelişimi için her detay en ince ayrıntısına kadar düşünülmüş.',
+        englishComment: 'VakıfBank Sports Palace is a monumental facility. Every detail for our daughter\'s progress has been meticulously considered.',
+        pros: ['Rüya Gibi Tesis', 'Süper Voleybol Eğitimi'],
+        cons: ['Lokasyon Trafiği'],
+        likes: 52,
+        tags: ['VakıfBank', 'Voleybol']
+      }
+    ]
   },
   {
     id: 'school-7',
@@ -490,7 +838,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Tenis', 'Raket Sporları', 'Bireysel Sporlar'],
-    reviews: []
+    aiSummary: {
+      tr: 'İstinye ENKA Sadi Gülçelik Spor Sitesi açık ve kapalı kort kalitesi, milli tenis antrenörleri ve doğayla iç içe atmosferiyle 1 numaradır.',
+      en: 'ENKA Sadi Gülçelik Sports Complex in İstinye reigns supreme with indoor/outdoor clay and hard courts led by national team coaches.',
+      highlightsTr: ['Açık & Kapalı Kort Çeşitliliği', 'Milli Tenis Eğitmenleri', 'Yeşil Doğa İçinde'],
+      highlightsEn: ['Indoor & Outdoor Court Options', 'National Tennis Instructors', 'Lush Green Campus']
+    },
+    reviews: [
+      {
+        id: 'r-sch7-1',
+        userName: 'Emre Yıldız',
+        verifiedAttendee: true,
+        date: '20 Ağustos 2026',
+        overallScore: 9.4,
+        scores: { antrenor: 9.2, tesis: 9.9, hijyen: 9.3 },
+        comment: 'ENKA tesisleri kort bakımı ve ışıklandırma açısından Türkiye\'nin en iyisi. Çocuklar kortta harika teknik kazanıyor.',
+        englishComment: 'ENKA court maintenance and lighting are second to none in Turkey. Kids gain solid technical strokes on court.',
+        pros: ['Harika Kort Zeminleri', 'Milli Antrenörler'],
+        cons: ['Üyelik Fiyatı Yüksek'],
+        likes: 28,
+        tags: ['Tenis', 'ENKA']
+      }
+    ]
   },
   {
     id: 'school-8',
@@ -510,7 +879,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: true,
     isActive: true,
     tags: ['Basketbol', 'Ankara', 'Okul Sporları'],
-    reviews: []
+    aiSummary: {
+      tr: 'TED Ankara Koleji yerleşkesindeki basketbol okulu köklü Ankara geleneği ve disiplinli parke antrenmanlarıyla takdir kazanmaktadır.',
+      en: 'TED Ankara College basketball academy blends Ankara\'s classic basketball tradition with disciplined indoor court training.',
+      highlightsTr: ['Köklü Ankara Geleneği', 'Disiplinli Koçlar', 'Temiz Kampüs'],
+      highlightsEn: ['Storied Ankara Tradition', 'Disciplined Coaches', 'Pristine Campus']
+    },
+    reviews: [
+      {
+        id: 'r-sch8-1',
+        userName: 'Burak Arslan',
+        verifiedAttendee: true,
+        date: '05 Eylül 2026',
+        overallScore: 8.9,
+        scores: { antrenor: 9.1, tesis: 8.6, hijyen: 9.0 },
+        comment: 'Ankara\'da basketbol denince akla gelen ilk adreslerden biri. Eğitmen ilgisi ve salon hijyeni çok iyi.',
+        englishComment: 'One of the first academies that comes to mind for basketball in Ankara. Coach care and hall cleanliness are top notch.',
+        pros: ['Köklü Disiplin', 'Geniş Otopark'],
+        cons: ['Kışın Salon Isınması Bazen Yavaş'],
+        likes: 17,
+        tags: ['Ankara', 'TED']
+      }
+    ]
   },
   {
     id: 'school-9',
@@ -530,7 +920,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Yelken', 'Su Sporları', 'İzmir'],
-    reviews: []
+    aiSummary: {
+      tr: 'İzmir Karşıyaka yelken kulübü çocuklara deniz sevgisini ve Optimist yelken tekniklerini güvenli bot takibiyle aşılamaktadır.',
+      en: 'Karşıyaka Sailing Academy instills a love for the sea and Optimist sailing skills in children backed by strict rescue boat supervision.',
+      highlightsTr: ['Optimist ve Laser Eğitimi', 'Deniz Güvenlik Botları', 'Karşıyaka Sahili'],
+      highlightsEn: ['Optimist & Laser Drills', 'Sea Safety Escort Boats', 'Karşıyaka Coastline']
+    },
+    reviews: [
+      {
+        id: 'r-sch9-1',
+        userName: 'Gözde Şahin',
+        verifiedAttendee: true,
+        date: '12 Temmuz 2026',
+        overallScore: 9.3,
+        scores: { antrenor: 9.5, tesis: 8.9, hijyen: 9.5 },
+        comment: 'Yaz okulunda çocukların deniz güvenliği 1. öncelik. Bot kaptanları ve yelken koçları süper.',
+        englishComment: 'Sea safety is priority #1 at the summer academy. Rescue boat captains and sailing coaches are stellar.',
+        pros: ['Yüksek Güvenlik', 'Deniz Sevgisi'],
+        cons: ['Güneş Koruma İhtiyacı'],
+        likes: 22,
+        tags: ['Yelken', 'Karşıyaka']
+      }
+    ]
   },
   {
     id: 'school-10',
@@ -550,7 +961,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Cimnastik', 'Temel Spor', 'Çocuk Gelişimi'],
-    reviews: []
+    aiSummary: {
+      tr: 'Gürsel Aksel Tesisleri\'nde verilen temel cimnastik eğitimi esneklik, denge ve koordinasyonu geliştirmek için harika minder ve mat donanımına sahiptir.',
+      en: 'Gürsel Aksel Gym academy provides an ideal setup of safety mats and bars for building youth flexibility, balance, and coordination.',
+      highlightsTr: ['Darbe Emici Minderler', 'Denge ve Esneklik Odaklı', 'Velilere Özel Alan'],
+      highlightsEn: ['Shock-Absorbing Mats', 'Balance & Mobility Focus', 'Dedicated Parent Seating']
+    },
+    reviews: [
+      {
+        id: 'r-sch10-1',
+        userName: 'Aslı Varol',
+        verifiedAttendee: true,
+        date: '28 Temmuz 2026',
+        overallScore: 8.7,
+        scores: { antrenor: 9.0, tesis: 8.3, hijyen: 8.8 },
+        comment: '4 yaşındaki kızım esneklik ve denge hareketlerini severek yapıyor. Minderler ve koruyucu matlar çok güvenli.',
+        englishComment: 'My 4-year-old daughter loves the flexibility and balance drills. Safety mats and protective gear are very reassuring.',
+        pros: ['Darbe Emici Matlar', 'Şefkatli Eğitmenler'],
+        cons: ['Giriş Park Yeri'],
+        likes: 14,
+        tags: ['Cimnastik', 'Göztepe']
+      }
+    ]
   },
   {
     id: 'event-rep-1',
@@ -570,7 +1002,42 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: true,
     isActive: true,
     tags: ['Yüzme', 'Açık Su', 'Uluslararası'],
-    reviews: []
+    aiSummary: {
+      tr: 'Kanlıca\'dan Kuruçeşme\'ye İstanbul Boğazı\'nı gemi trafiğine kapatarak yüzme deneyimi sunan organizasyon, bot güvenliği ve çip zamanlamasıyla dünyada eşsizdir.',
+      en: 'Swimming across the Bosphorus from Kanlıca to Kuruçeşme with closed maritime traffic offers a world-renowned open water race backed by top-tier rescue boats and chip timing.',
+      highlightsTr: ['Boğaz Trafiğe Kapalı', 'Üst Düzey Bot Güvenliği', 'Eşsiz Kıtalararası Parkur'],
+      highlightsEn: ['Closed Bosphorus Traffic', 'Elite Safety Boat Fleet', 'Iconic Cross-Continental Route']
+    },
+    reviews: [
+      {
+        id: 'r-ev1-1',
+        userName: 'Metehan Şen',
+        verifiedAttendee: true,
+        date: '24 Ağustos 2026',
+        overallScore: 9.9,
+        scores: { organizasyonAkis: 9.8, parkurGuvenlik: 10.0, atmosferSeyir: 10.0 },
+        comment: 'Asya\'dan Avrupa\'ya kulvar açmak hayatımın en gururlu anıydı. TMOK organizasyonu ve deniz bot takibi eksiksizdi.',
+        englishComment: 'Swimming from Asia to Europe was the proudest moment of my life. Turkish NOC organization and boat escorts were flawless.',
+        pros: ['Kusursuz Organizasyon', 'Eşsiz Manzara', 'Güvenlik Botları'],
+        cons: ['Akıntı Okumak Zor'],
+        likes: 112,
+        tags: ['Boğaziçi', 'Yüzme']
+      },
+      {
+        id: 'r-ev1-2',
+        userName: 'Elena Rostova',
+        verifiedAttendee: true,
+        date: '25 Ağustos 2026',
+        overallScore: 9.7,
+        scores: { organizasyonAkis: 9.6, parkurGuvenlik: 9.8, atmosferSeyir: 9.8 },
+        comment: 'Yurt dışından bu yarış için gelmek her ana değdi. Kuruçeşme Parkı\'ndaki organizasyon mükemmel bir şekilde işledi.',
+        englishComment: 'Traveling from abroad for this race was worth every moment. The organization in Kuruçeşme Park was perfectly streamlined.',
+        pros: ['Uluslararası Standart', 'Harika Atmosfer'],
+        cons: ['Kayıt kontenjanları hızlı doluyor'],
+        likes: 67,
+        tags: ['Bosphorus', 'OpenWater']
+      }
+    ]
   },
   {
     id: 'event-rep-2',
@@ -590,7 +1057,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: true,
     isActive: true,
     tags: ['Koşu', 'Ultra Maraton', 'Doğa Sporları'],
-    reviews: []
+    aiSummary: {
+      tr: 'Nevşehir Ürgüp vadilerinde ve peribacaları patikalarında düzenlenen yarıştaki Check-Point (CP) ikramları, parkur bayraklaması ve gönüllü enerjisi mükemmeldir.',
+      en: 'Organized through the fairy chimneys of Cappadocia, this ultra marathon receives acclaim for rich CP stations, flag markings, and volunteer energy.',
+      highlightsTr: ['Peribacaları Parkuru', 'Zengin CP İkramları', 'Harika Gönüllü İlgisi'],
+      highlightsEn: ['Fairy Chimney Trail', 'Abundant CP Refreshments', 'Superb Volunteer Support']
+    },
+    reviews: [
+      {
+        id: 'r-ev2-1',
+        userName: 'Tolga Pekcan',
+        verifiedAttendee: true,
+        date: '18 Ekim 2026',
+        overallScore: 9.8,
+        scores: { organizasyonAkis: 9.7, parkurGuvenlik: 9.6, kitIkram: 9.9 },
+        comment: 'CP istasyonlarındaki sıcak çorba, meyve ve gönüllü desteği 60. kilometrede hayat kurtardı. Gece etabındaki refleks şeritler çok netti.',
+        englishComment: 'Hot soup, fruits, and volunteer cheers at CP stations were lifesavers at km 60. Reflective markers for night stages were razor clear.',
+        pros: ['Kusursuz İşaretleme', 'Zengin CP Masaları', 'Büyüleyici Doğa'],
+        cons: ['Zorlu İrtifa'],
+        likes: 83,
+        tags: ['UltraMaraton', 'Kapadokya']
+      }
+    ]
   },
   {
     id: 'event-rep-3',
@@ -610,7 +1098,28 @@ export const INITIAL_EVENTS: SportsEvent[] = [
     featured: false,
     isActive: true,
     tags: ['Koşu', 'Yarı Maraton', 'Atletizm'],
-    reviews: []
+    aiSummary: {
+      tr: 'Haliç ve Tarihi Yarımada sahilindeki tamamen düz parkur, kişisel en iyi derece (PB) koşmak isteyen atletler için Türkiye\'nin en hızlı maratonudur.',
+      en: 'Featuring a completely flat course along the Golden Horn and Historical Peninsula, this is Turkey\'s fastest half marathon for setting a Personal Best (PB).',
+      highlightsTr: ['Düz ve Hızlı Parkur', 'Tarihi Yarımada Manzarası', 'Bol Su ve İzo İçecek Noktası'],
+      highlightsEn: ['Flat & Fast PB Course', 'Historical Peninsula Views', 'Frequent Water & Isotonic Hubs']
+    },
+    reviews: [
+      {
+        id: 'r-ev3-1',
+        userName: 'Ceren Akman',
+        verifiedAttendee: true,
+        date: '06 Nisan 2026',
+        overallScore: 9.3,
+        scores: { organizasyonAkis: 9.1, parkurGuvenlik: 9.5, atmosferSeyir: 9.4 },
+        comment: 'Haliç kıyısındaki dümdüz parkur sayesinde kişisel rekorumu (PB) kırdım! Su istasyonları ve finish madalyası harikaydı.',
+        englishComment: 'Broke my Personal Best (PB) thanks to the perfectly flat course along the Golden Horn! Hydration hubs and finish medal were amazing.',
+        pros: ['Hızlı PB Parkuru', 'Harika Finish Madalyası'],
+        cons: ['Emanet Çanta Kuyruğu'],
+        likes: 49,
+        tags: ['YarıMaraton', 'Koşu']
+      }
+    ]
   }
 ];
 
@@ -632,8 +1141,8 @@ export const INITIAL_CORPORATE_APPS: CorporateApplication[] = [
     website: 'https://sampiyonhalisaha.com',
     capacity: '14 Kişi / Maç',
     amenities: ['Otopark', 'Duş & Soyunma Odası', 'Kafeterya', 'Aydınlatma', 'Kiralık Ekipman'],
-    imageUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=800&auto=format&fit=crop',
-    description: 'Kadıköy\'ün en iyi zeminine sahip halı sahası. Gece maçları için profesyonel aydınlatma sistemimiz mevcuttur.',
+    imageUrl: 'https://images.unsplash.com/photo-157952363873-27f3bade9f55?q=80&w=800&auto=format&fit=crop',
+    description: 'Kadıköy\'ün en iyi zeminine sahip halı sahası. Gece maçları için profesyonel aydınlatma sistemimiz mevcultur.',
     taxOffice: 'Kadıköy',
     taxNumber: '1234567890',
     licenseNumber: 'GSİM-2023-001',

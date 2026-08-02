@@ -170,7 +170,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
       userName: userName.trim(),
       userAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
       verifiedAttendee: verified || uploadedFiles.length > 0,
-      date: 'Bugün',
+      date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
       overallScore: currentScore,
       scores,
       comment: comment.trim(),

@@ -8,7 +8,10 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
 } from "firebase/auth";
 import { initializeFirestore, memoryLocalCache, getFirestore, Firestore, doc, getDocFromServer } from "firebase/firestore";
 
@@ -27,9 +30,7 @@ const databaseId = "ai-studio-sporpuan-584c3fa0-145e-4898-bad3-ca77311c7f56";
 
 let db: Firestore;
 try {
-  db = initializeFirestore(app, {
-    localCache: memoryLocalCache(),
-  }, databaseId);
+  db = initializeFirestore(app, {}, databaseId);
 } catch {
   db = getFirestore(app, databaseId);
 }
@@ -59,5 +60,8 @@ export {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
 };

@@ -12,6 +12,7 @@ import {
   Trophy, 
   Calendar, 
   ChevronRight, 
+  ChevronLeft,
   Maximize2, 
   Minimize2,
   Compass, 
@@ -115,6 +116,11 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
   const [maxRadiusKm, setMaxRadiusKm] = useState<number>(0); // 0 means all distances
   const [activeHoveredEventId, setActiveHoveredEventId] = useState<string | null>(null);
 
+  // Pagination for Map Sidebar List
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 6;
+  const sidebarListRef = useRef<HTMLDivElement | null>(null);
+
   // Local Category Filter state if parent doesn't handle
   const [categoryFilter, setCategoryFilter] = useState<SportsCategory>(selectedCategory);
   const [cityFilter, setCityFilter] = useState<string>(selectedCity);
@@ -128,6 +134,11 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
   useEffect(() => {
     setCityFilter(selectedCity);
   }, [selectedCity]);
+
+  // Reset pagination to page 1 on filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, cityFilter, searchTerm, maxRadiusKm, userCoords]);
 
   // Filter events matching active filters
   const filteredEvents = events.filter((e) => {
@@ -175,6 +186,13 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
     }
     return b.overallScore - a.overallScore;
   });
+
+  const totalPages = Math.max(1, Math.ceil(eventsWithDistance.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedEvents = eventsWithDistance.slice(
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage
+  );
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -643,9 +661,16 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
                   {userCoords ? 'Yakındakiler' : 'Harita Listesi'}
                 </h3>
               </div>
-              <span className="text-[10px] bg-blue-50 text-blue-700 font-mono font-bold px-2 py-0.5 rounded-full border border-blue-200">
-                {eventsWithDistance.length} Kayıt
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] bg-blue-50 text-blue-700 font-mono font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                  {eventsWithDistance.length} Kayıt
+                </span>
+                {totalPages > 1 && (
+                  <span className="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200">
+                    S. {safeCurrentPage}/{totalPages}
+                  </span>
+                )}
+              </div>
             </div>
 
             {eventsWithDistance.length === 0 ? (
@@ -655,63 +680,117 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
                 <p className="text-[11px]">Mesafe yarıçapını genişletebilir veya şehir filtresini değiştirebilirsiniz.</p>
               </div>
             ) : (
-              <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
-                {eventsWithDistance.map((ev) => (
-                  <div
-                    key={ev.id}
-                    onClick={() => handleFlyToEvent(ev)}
-                    onMouseEnter={() => setActiveHoveredEventId(ev.id)}
-                    onMouseLeave={() => setActiveHoveredEventId(null)}
-                    className={`p-3 rounded-2xl border transition cursor-pointer flex items-center gap-3 ${
-                      activeHoveredEventId === ev.id
-                        ? 'bg-blue-50/70 border-blue-400 shadow-xs'
-                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60'
-                    }`}
-                  >
-                    <img
-                      src={ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}
-                      alt={ev.title}
-                      className="w-16 h-16 rounded-xl object-cover shrink-0"
-                    />
+              <>
+                <div ref={sidebarListRef} className="overflow-y-auto space-y-2.5 flex-1 pr-1">
+                  {paginatedEvents.map((ev) => (
+                    <div
+                      key={ev.id}
+                      onClick={() => handleFlyToEvent(ev)}
+                      onMouseEnter={() => setActiveHoveredEventId(ev.id)}
+                      onMouseLeave={() => setActiveHoveredEventId(null)}
+                      className={`p-3 rounded-2xl border transition cursor-pointer flex items-center gap-3 ${
+                        activeHoveredEventId === ev.id
+                          ? 'bg-blue-50/70 border-blue-400 shadow-xs'
+                          : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60'
+                      }`}
+                    >
+                      <img
+                        src={ev.image || ''}
+                        alt={ev.title}
+                        className="w-16 h-16 rounded-xl object-cover shrink-0"
+                      />
 
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
-                          {ev.category}
-                        </span>
-                        <span className="text-[10px] font-black text-amber-500 flex items-center gap-0.5">
-                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                          {ev.overallScore.toFixed(1)}
-                        </span>
-                      </div>
-
-                      <h4 className="font-bold text-xs text-slate-900 truncate leading-tight">
-                        {ev.title}
-                      </h4>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-500">
-                        <span className="truncate">📍 {ev.venue}</span>
-                        {ev.distanceKm !== null && (
-                          <span className="bg-blue-50 text-blue-700 font-mono font-bold px-1.5 py-0.5 rounded shrink-0 border border-blue-200">
-                            {ev.distanceKm} km
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
+                            {ev.category}
                           </span>
-                        )}
+                          <span className="text-[10px] font-black text-amber-500 flex items-center gap-0.5">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            {ev.overallScore.toFixed(1)}
+                          </span>
+                        </div>
+
+                        <h4 className="font-bold text-xs text-slate-900 truncate leading-tight">
+                          {ev.title}
+                        </h4>
+
+                        <div className="flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="truncate">📍 {ev.venue}</span>
+                          {ev.distanceKm !== null && (
+                            <span className="bg-blue-50 text-blue-700 font-mono font-bold px-1.5 py-0.5 rounded shrink-0 border border-blue-200">
+                              {ev.distanceKm} km
+                            </span>
+                          )}
+                        </div>
                       </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectEvent(ev);
+                        }}
+                        title="Detaylar & Puan Tablosu"
+                        className="p-2 bg-white hover:bg-blue-600 hover:text-white text-slate-600 rounded-xl transition shrink-0 border border-slate-200 shadow-2xs"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Sidebar Pagination Bar */}
+                {totalPages > 1 && (
+                  <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        if (safeCurrentPage > 1) {
+                          setCurrentPage((prev) => prev - 1);
+                          if (sidebarListRef.current) sidebarListRef.current.scrollTop = 0;
+                        }
+                      }}
+                      disabled={safeCurrentPage === 1}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 font-bold text-slate-700 rounded-xl transition flex items-center gap-1 text-[11px]"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span>Önceki</span>
+                    </button>
+
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-[140px] px-1 py-0.5">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                        <button
+                          key={pageNum}
+                          onClick={() => {
+                            setCurrentPage(pageNum);
+                            if (sidebarListRef.current) sidebarListRef.current.scrollTop = 0;
+                          }}
+                          className={`w-6 h-6 rounded-lg text-[11px] font-extrabold transition shrink-0 flex items-center justify-center ${
+                            pageNum === safeCurrentPage
+                              ? 'bg-blue-600 text-white shadow-2xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      ))}
                     </div>
 
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectEvent(ev);
+                      onClick={() => {
+                        if (safeCurrentPage < totalPages) {
+                          setCurrentPage((prev) => prev + 1);
+                          if (sidebarListRef.current) sidebarListRef.current.scrollTop = 0;
+                        }
                       }}
-                      title="Detaylar & Puan Tablosu"
-                      className="p-2 bg-white hover:bg-blue-600 hover:text-white text-slate-600 rounded-xl transition shrink-0 border border-slate-200 shadow-2xs"
+                      disabled={safeCurrentPage >= totalPages}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 font-bold text-slate-700 rounded-xl transition flex items-center gap-1 text-[11px]"
                     >
-                      <ChevronRight className="w-4 h-4" />
+                      <span>Sonraki</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
 
           </div>

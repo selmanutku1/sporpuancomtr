@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { INITIAL_EVENTS } from './data/mockEvents';
 import { SportsEvent, SportsCategory, Review, UserProfile, UserRole } from './types';
+import { db } from './lib/firebase';
+import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
 import { CategoryFilter } from './components/CategoryFilter';
@@ -19,21 +21,24 @@ import { CorporateInviteForm } from './components/CorporateInviteForm';
 import { ReviewPage } from './components/ReviewPage';
 import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';
 import { Footer } from './components/Footer';
-import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map } from 'lucide-react';
+import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map as MapIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORY_CRITERIA_MAP, calculateOverallScore } from './lib/scoreUtils';
+import { detectCategory } from './lib/categoryUtils';
 
 const EventDetailWrapper = ({ 
   events, 
   onRateClick, 
   onLikeReview, 
   currentUser, 
-  setEditingEvent 
+  setEditingEvent,
+  onUpdateEvent
 }: { 
   events: SportsEvent[], 
   onRateClick: (event: SportsEvent) => void, 
   onLikeReview: (eventId: string, reviewId: string) => void, 
   currentUser: UserProfile | null, 
-  setEditingEvent: (event: SportsEvent) => void 
+  setEditingEvent: (event: SportsEvent) => void,
+  onUpdateEvent: (event: SportsEvent) => void
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -55,6 +60,7 @@ const EventDetailWrapper = ({
       onClose={() => navigate('/')}
       onOpenRateForm={onRateClick}
       onLikeReview={onLikeReview}
+      onUpdateEvent={currentUser?.role === 'admin' ? onUpdateEvent : undefined}
       onOpenEditModal={
         currentUser?.role === 'admin'
           ? (ev) => setEditingEvent(ev)
@@ -68,22 +74,114 @@ export default function App() {
   const navigate = useNavigate();
 
   const [events, setEvents] = useState<SportsEvent[]>(() => {
+    let initialList: SportsEvent[] = [];
     const saved = localStorage.getItem('sporpuan_events_v2');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        initialList = JSON.parse(saved);
       } catch (e) {
-        return INITIAL_EVENTS;
+        initialList = INITIAL_EVENTS;
       }
+    } else {
+      initialList = INITIAL_EVENTS;
     }
-    return INITIAL_EVENTS;
+    // Filter out all facilities/events that have representative unsplash or missing images
+    return initialList.filter((ev) => ev.image && !ev.image.includes('unsplash.com'));
   });
 
   // Save changes to localStorage
   const updateEventsState = (newEvents: SportsEvent[]) => {
-    setEvents(newEvents);
-    localStorage.setItem('sporpuan_events_v2', JSON.stringify(newEvents));
+    const filtered = newEvents.filter((ev) => ev.image && !ev.image.includes('unsplash.com'));
+    setEvents(filtered);
+    localStorage.setItem('sporpuan_events_v2', JSON.stringify(filtered));
   };
+
+  // Sync facilities from Firestore database to site state on mount
+  useEffect(() => {
+    const fetchFirestoreFacilities = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'facilities'));
+        if (!querySnapshot.empty) {
+          setEvents((prevEvents) => {
+            const firestoreEventsMap = new Map<string, SportsEvent>();
+
+            querySnapshot.docs.forEach((docSnap) => {
+              const data = docSnap.data();
+              const image = data.image || null;
+
+              // Skip representative or missing images
+              if (!image || image.includes('unsplash.com')) {
+                return;
+              }
+
+              const facilityName = data.name || data.title || 'Spor Tesisi';
+              const address = data.address || data.formattedAddress || '';
+              
+              let city = 'İstanbul';
+              const knownCities = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana', 'Konya', 'Gaziantep', 'Kocaeli', 'Mersin', 'Eskişehir', 'Samsun', 'Trabzon', 'Kayseri'];
+              for (const c of knownCities) {
+                if (address.toLowerCase().includes(c.toLowerCase())) {
+                  city = c;
+                  break;
+                }
+              }
+
+              firestoreEventsMap.set(docSnap.id, {
+                id: docSnap.id,
+                title: facilityName,
+                slug: facilityName.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, '-'),
+                category: detectCategory(facilityName, '', address, data.category),
+                city: city,
+                venue: address || facilityName,
+                date: 'Tüm Yıl Açık',
+                organizer: 'Doğrulanmış Spor Tesisi',
+                organizerVerified: true,
+                image: image,
+                description: `${facilityName} - ${address ? `Adres: ${address}. ` : ''}Sporpuan haritalar ve tesis rehberinde yer alan doğrulanmış tesis.`,
+                overallScore: data.overallScore || 8.8,
+                ratingBreakdown: data.ratingBreakdown || {
+                  'Hijyen & Temizlik': 8.9,
+                  'Ekipman Kalitesi': 8.7,
+                  'Personel İlgi & Alakası': 9.0,
+                  'Fiyat / Performans': 8.6
+                },
+                reviewCount: data.userRatingCount || data.reviewCount || (data.reviews ? data.reviews.length : 1),
+                featured: false,
+                tags: ['Spor Tesisi', city],
+                reviews: data.reviews || [],
+                isActive: data.isActive !== undefined ? data.isActive : true,
+                latitude: data.location?.latitude || data.location?.lat,
+                longitude: data.location?.longitude || data.location?.lng,
+                sourceProvider: 'Veritabanı',
+                lastSyncedAt: new Date().toISOString()
+              });
+            });
+
+            // Merge Firestore facilities with prevEvents (overwriting old local reviews with latest Firestore translated reviews)
+            const updated = prevEvents.map((ev) => firestoreEventsMap.get(ev.id) || ev);
+
+            // Add any newly added Firestore facilities not in prevEvents
+            firestoreEventsMap.forEach((facilityEvent, id) => {
+              if (!updated.some((e) => e.id === id)) {
+                updated.push(facilityEvent);
+              }
+            });
+
+            const cleanUpdated = updated.filter((e) => e.image && !e.image.includes('unsplash.com'));
+            try {
+              localStorage.setItem('sporpuan_events_v2', JSON.stringify(cleanUpdated));
+            } catch (e) {
+              console.error(e);
+            }
+            return cleanUpdated;
+          });
+        }
+      } catch (err) {
+        console.error('Initial Firestore fetch error:', err);
+      }
+    };
+    fetchFirestoreFacilities();
+  }, []);
 
   // View Mode State
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
@@ -93,6 +191,15 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('Tüm Şehirler');
   const [sortBy, setSortBy] = useState('score-desc');
+
+  // Pagination State
+  const ITEMS_PER_PAGE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page number when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchQuery, selectedCity, sortBy]);
 
   // Modal States
   const [rateModalEvent, setRateModalEvent] = useState<SportsEvent | null>(null);
@@ -136,14 +243,68 @@ export default function App() {
     setIsAuthModalOpen(true);
   };
 
-  const handleDeleteEvent = (eventId: string) => {
+  const handleDeleteEvent = async (eventId: string) => {
     const updated = events.filter((ev) => ev.id !== eventId);
     updateEventsState(updated);
+    try {
+      await deleteDoc(doc(db, 'facilities', eventId));
+    } catch (err) {
+      console.error('Firestore delete facility error:', err);
+    }
   };
 
-  const handleUpdateEvent = (updatedEvent: SportsEvent) => {
+  const handleUpdateEvent = async (updatedEvent: SportsEvent) => {
     const updatedList = events.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev));
     updateEventsState(updatedList);
+
+    try {
+      const facilityRef = doc(db, 'facilities', updatedEvent.id);
+      await updateDoc(facilityRef, {
+        title: updatedEvent.title,
+        name: updatedEvent.title,
+        category: updatedEvent.category,
+        city: updatedEvent.city,
+        address: updatedEvent.venue,
+        image: updatedEvent.image,
+        isActive: updatedEvent.isActive !== false,
+        description: updatedEvent.description || '',
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      try {
+        await setDoc(doc(db, 'facilities', updatedEvent.id), {
+          title: updatedEvent.title,
+          name: updatedEvent.title,
+          category: updatedEvent.category,
+          city: updatedEvent.city,
+          address: updatedEvent.venue,
+          image: updatedEvent.image,
+          isActive: updatedEvent.isActive !== false,
+          description: updatedEvent.description || '',
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (e2) {
+        console.error('Firestore update facility error:', e2);
+      }
+    }
+  };
+
+  const handleUpdateEventsBatch = (updatedEvents: SportsEvent[]) => {
+    setEvents((prevEvents) => {
+      const updatedMap = new Map(updatedEvents.map((e) => [e.id, e]));
+      const newEvents = prevEvents.map((ev) => updatedMap.get(ev.id) || ev);
+      updatedEvents.forEach((ev) => {
+        if (!newEvents.some((e) => e.id === ev.id)) {
+          newEvents.push(ev);
+        }
+      });
+      try {
+        localStorage.setItem('sporpuan_events_v2', JSON.stringify(newEvents));
+      } catch (e) {
+        console.error(e);
+      }
+      return newEvents;
+    });
   };
 
   const handleResetEvents = () => {
@@ -155,26 +316,6 @@ export default function App() {
     const citySet = new Set<string>();
     events.forEach((e) => citySet.add(e.city));
     return Array.from(citySet).sort();
-  }, [events]);
-
-  // Category counts
-  const categoryCounts = useMemo(() => {
-    const activeEvents = events.filter(e => e.isActive !== false);
-    const counts: Record<SportsCategory, number> = {
-      'Tümü': activeEvents.length,
-      'Spor Tesisleri': 0,
-      'Spor Salonları': 0,
-      'Spor Okulları': 0,
-      'Spor Etkinlikleri': 0,
-    };
-
-    activeEvents.forEach((e) => {
-      if (counts[e.category] !== undefined) {
-        counts[e.category] += 1;
-      }
-    });
-
-    return counts;
   }, [events]);
 
   // Filtered & Sorted Events
@@ -218,6 +359,26 @@ export default function App() {
       return 0;
     });
   }, [events, selectedCategory, selectedCity, searchQuery, sortBy]);
+
+  // Pagination calculation
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredEvents.length / ITEMS_PER_PAGE) || 1;
+  }, [filteredEvents.length, ITEMS_PER_PAGE]);
+
+  const paginatedEvents = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredEvents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredEvents, currentPage, ITEMS_PER_PAGE]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    const eventsSection = document.getElementById('events-section');
+    if (eventsSection) {
+      eventsSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 400, behavior: 'smooth' });
+    }
+  };
 
   // Handle Review Submission
   const handleAddReview = (eventId: string, newReview: Review) => {
@@ -335,6 +496,7 @@ export default function App() {
               onLikeReview={handleLikeReview}
               currentUser={currentUser}
               setEditingEvent={setEditingEvent}
+              onUpdateEvent={handleUpdateEvent}
             />
           } />
 
@@ -363,6 +525,7 @@ export default function App() {
               onEditEvent={setEditingEvent}
               onUpdateEvent={handleUpdateEvent}
               onAddEvent={handleAddNewEvent}
+              onUpdateEventsBatch={handleUpdateEventsBatch}
             />
           } />
 
@@ -393,7 +556,7 @@ export default function App() {
                 <div className="flex items-center gap-3">
                   <div>
                     <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                      <Map className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      <MapIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                       <span>Sporpuan Haritası</span>
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -442,11 +605,8 @@ export default function App() {
                 cities={cities}
               />
 
-              {/* Categories Bar & Sorting */}
+              {/* Sorting */}
               <CategoryFilter
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                categoryCounts={categoryCounts}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
                 viewMode={viewMode}
@@ -503,19 +663,89 @@ export default function App() {
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredEvents.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          onSelectEvent={(ev) => {
-                            window.scrollTo(0, 0);
-                            navigate('/tesis/' + ev.id);
-                          }}
-                          onRateClick={handleRateClick}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {paginatedEvents.map((event) => (
+                          <EventCard
+                            key={event.id}
+                            event={event}
+                            onSelectEvent={(ev) => {
+                              window.scrollTo(0, 0);
+                              navigate('/tesis/' + ev.id);
+                            }}
+                            onRateClick={handleRateClick}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
+                          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
+                            Gösterilen: <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvents.length)}</span> / Toplam <span className="font-bold text-slate-900 dark:text-white">{filteredEvents.length}</span> Kayıt
+                          </div>
+
+                          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                            {/* Prev Page */}
+                            <button
+                              onClick={() => handlePageChange(currentPage - 1)}
+                              disabled={currentPage === 1}
+                              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-bold flex items-center gap-1"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                              <span className="hidden sm:inline">Önceki</span>
+                            </button>
+
+                            {/* Page Numbers */}
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                              .filter(page => {
+                                return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                              })
+                              .reduce<(number | string)[]>((acc, page, index, array) => {
+                                if (index > 0 && page - (array[index - 1] as number) > 1) {
+                                  acc.push('...');
+                                }
+                                acc.push(page);
+                                return acc;
+                              }, [])
+                              .map((item, idx) => {
+                                if (item === '...') {
+                                  return (
+                                    <span key={`dots-${idx}`} className="px-2 py-1 text-slate-400 text-xs font-bold">
+                                      ...
+                                    </span>
+                                  );
+                                }
+                                const pageNum = item as number;
+                                const isActive = pageNum === currentPage;
+                                return (
+                                  <button
+                                    key={pageNum}
+                                    onClick={() => handlePageChange(pageNum)}
+                                    className={`w-9 h-9 rounded-xl font-bold text-xs transition flex items-center justify-center ${
+                                      isActive
+                                        ? 'bg-blue-600 text-white shadow-xs'
+                                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                    }`}
+                                  >
+                                    {pageNum}
+                                  </button>
+                                );
+                              })}
+
+                            {/* Next Page */}
+                            <button
+                              onClick={() => handlePageChange(currentPage + 1)}
+                              disabled={currentPage === totalPages}
+                              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-bold flex items-center gap-1"
+                            >
+                              <span className="hidden sm:inline">Sonraki</span>
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
               )}

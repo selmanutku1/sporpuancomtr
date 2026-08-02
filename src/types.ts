@@ -31,6 +31,8 @@ export interface Review {
   overallScore: number;
   scores: RatingCriterion;
   comment: string;
+  originalComment?: string;
+  englishComment?: string;
   pros: string[];
   cons: string[];
   likes: number;
@@ -96,4 +98,10 @@ export interface SportsEvent {
   longitude?: number;
   sourceProvider?: string;
   lastSyncedAt?: string;
+  aiSummary?: {
+    tr: string;
+    en: string;
+    highlightsTr?: string[];
+    highlightsEn?: string[];
+  };
 }

@@ -34,13 +34,10 @@ export const EventCard: React.FC<EventCardProps> = ({
       {/* Top Image Banner */}
       <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
         <img
-          src={event.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=400&auto=format&fit=crop'}
+          src={event.image || ''}
           alt={event.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=1200&auto=format&fit=crop';
-          }}
         />
         <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/10 transition-colors" />
 
@@ -59,12 +56,6 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
         </div>
 
-        {/* Featured Tag */}
-        {event.featured && (
-          <div className="absolute bottom-3 left-3 bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-xs">
-            Öne Çıkan {event.category === 'Spor Okulları' ? 'Okul' : event.category === 'Spor Salonları' ? 'Salon' : event.category === 'Spor Tesisleri' ? 'Tesis' : 'Etkinlik'}
-          </div>
-        )}
 
         {/* City & Venue Overlay Bottom */}
         <div className="absolute bottom-3 right-3 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-700 shadow-2xs">
@@ -81,15 +72,17 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="flex items-center justify-between gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
             <div className="flex items-center gap-1.5">
               <span>Organizatör:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">{event.organizer}</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {event.organizer?.toLowerCase().includes('google maps') ? 'Doğrulanmış Spor Tesisi' : event.organizer}
+              </span>
               {event.organizerVerified && (
-                <BadgeCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 inline" title="Onaylı Organizatör" />
+                <BadgeCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 inline" title="Onaylı Tesis" />
               )}
             </div>
 
             {event.sourceProvider && (
               <span className="text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 px-1.5 py-0.5 rounded shrink-0">
-                ⚡ {event.sourceProvider}
+                ⚡ {event.sourceProvider.replace(/firebase\s*firestore|firestore|firebase|google maps/gi, 'Veritabanı')}
               </span>
             )}
           </div>
@@ -126,7 +119,10 @@ export const EventCard: React.FC<EventCardProps> = ({
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5">
-          {event.tags.slice(0, 3).map((tag) => (
+          {event.tags
+            .filter(tag => !tag.toLowerCase().includes('google maps') && !tag.toLowerCase().includes('firebase') && !tag.toLowerCase().includes('firestore'))
+            .slice(0, 3)
+            .map((tag) => (
             <span
               key={tag}
               className="text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700"

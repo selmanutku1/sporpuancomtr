@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types';
 import { X, User, Building2, Lock, Mail, ShieldCheck, Check, Sparkles, LogIn, UserPlus, ArrowRight, FileText } from 'lucide-react';
-import { auth, db, googleProvider, appleProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from '../lib/firebase';
+import { auth, db, googleProvider, appleProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { LegalModal, LegalDocType } from './LegalModal';
+import { notifyRegistration } from '../lib/notifications';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -18,9 +19,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   
   // Form fields
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [title, setTitle] = useState('');
 
   // Legal Consent states
@@ -146,11 +147,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setError(null);
 
     if (activeTab === 'register') {
-      if (!name.trim()) {
-        setError('Lütfen adınızı giriniz.');
-        return;
-      }
-
       if (!termsAccepted || !kvkkAccepted) {
         setError('Devam edebilmek için Kullanım Şartları ve KVKK Aydınlatma Metnini onaylamanız gerekmektedir.');
         return;
@@ -167,7 +163,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         let userProfile: UserProfile = {
           id: user.uid,
-          name: name.trim(),
+          name: email.split('@')[0] || 'Kullanıcı',
           email: email.trim(),
           role,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
@@ -176,6 +172,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         };
 
         userProfile = await saveUserToFirestore(userProfile);
+        
+        // Notify admin about new user registration
+        await notifyRegistration('kullanıcı', userProfile.name, userProfile.email);
 
         onLoginSuccess(userProfile);
         onClose();
@@ -189,7 +188,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           }
           let userProfile: UserProfile = {
             id: mockUid,
-            name: name.trim(),
+            name: email.split('@')[0] || 'Kullanıcı',
             email: email.trim(),
             role,
             avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
@@ -210,6 +209,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } else {
       // Login mode
       try {
+        await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
@@ -220,7 +220,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         let userProfile: UserProfile = {
           id: user.uid,
-          name: name || user.displayName || email.split('@')[0],
+          name: user.displayName || email.split('@')[0] || 'Kullanıcı',
           email: email.trim(),
           role,
           avatar: user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
@@ -373,21 +373,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            {/* Name input */}
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700 dark:text-slate-300 block">
-                Adınız Soyadınız *
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="örn: Ahmet Yılmaz"
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
-              />
-            </div>
-
             {/* Email input */}
             <div className="space-y-1">
               <label className="font-bold text-slate-700 dark:text-slate-300 block">E-Posta Adresi *</label>
@@ -418,15 +403,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
                 />
               </div>
-              {activeTab === 'login' && (
-                <button 
-                  type="button" 
-                  onClick={handleForgotPassword}
-                  className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline mt-1 block"
-                >
-                  Şifremi unuttum?
-                </button>
-              )}
+              <div className="flex items-center justify-between">
+                {activeTab === 'login' && (
+                  <button 
+                    type="button" 
+                    onClick={handleForgotPassword}
+                    className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline mt-1"
+                  >
+                    Şifremi unuttum?
+                  </button>
+                )}
+                {activeTab === 'login' && (
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 mt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="rounded text-blue-600"
+                    />
+                    Beni Hatırla
+                  </label>
+                )}
+              </div>
             </div>
 
             {/* Legal Consent Checkboxes for Registration */}

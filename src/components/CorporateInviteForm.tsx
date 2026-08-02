@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { SportsCategory, UserProfile, CorporateApplication } from '../types';
 import { TURKEY_CITIES, getDistrictsByCity } from '../data/turkeyLocations';
+import { notifyRegistration } from '../lib/notifications';
 import { db } from '../lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
@@ -233,6 +234,7 @@ export const CorporateInviteForm: React.FC<CorporateInviteFormProps> = ({ curren
     try {
       // 1. Save to Firestore `corporate_applications`
       await setDoc(doc(db, 'corporate_applications', generatedCode), newApp);
+      await notifyRegistration('kurumsal', newApp.contactName, newApp.contactEmail);
     } catch (err) {
       console.warn("Firestore save warning, backing up locally:", err);
     }
