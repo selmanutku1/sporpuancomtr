@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types';
 import { X, User, Building2, Lock, Mail, ShieldCheck, Check, Sparkles, LogIn, UserPlus, ArrowRight, FileText } from 'lucide-react';
-import { auth, db, googleProvider, appleProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from '../lib/firebase';
+import { auth, db, googleProvider, appleProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { LegalModal, LegalDocType } from './LegalModal';
 
@@ -125,6 +125,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       } else {
         setError(err.message || 'Apple girişi başarısız oldu.');
       }
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Lütfen e-posta adresinizi giriniz.');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+    } catch (err: any) {
+      setError('Şifre sıfırlama bağlantısı gönderilemedi: ' + err.message);
     }
   };
 
@@ -405,6 +418,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
                 />
               </div>
+              {activeTab === 'login' && (
+                <button 
+                  type="button" 
+                  onClick={handleForgotPassword}
+                  className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline mt-1 block"
+                >
+                  Şifremi unuttum?
+                </button>
+              )}
             </div>
 
             {/* Legal Consent Checkboxes for Registration */}

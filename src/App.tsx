@@ -109,15 +109,7 @@ export default function App() {
     } catch (e) {
       console.error(e);
     }
-    return {
-      id: 'demo-user-1',
-      name: 'Ahmet Yılmaz',
-      email: 'ahmet@sporsever.com',
-      role: 'user',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-      title: 'Kıdemli Tribün Taraftarı',
-      createdAt: '2025-01-15',
-    };
+    return null;
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

@@ -7,7 +7,8 @@ import {
   signOut, 
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { initializeFirestore, memoryLocalCache, getFirestore, Firestore, doc, getDocFromServer } from "firebase/firestore";
 
@@ -57,5 +58,6 @@ export {
   signOut, 
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 };
