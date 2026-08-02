@@ -98,6 +98,7 @@ export interface SportsEvent {
   longitude?: number;
   sourceProvider?: string;
   lastSyncedAt?: string;
+  googlePlaceId?: string;
   aiSummary?: {
     tr: string;
     en: string;

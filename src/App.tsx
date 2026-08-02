@@ -21,9 +21,10 @@ import { CorporateInviteForm } from './components/CorporateInviteForm';
 import { ReviewPage } from './components/ReviewPage';
 import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';
 import { Footer } from './components/Footer';
+import { SEOHead } from './components/SEOHead';
 import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map as MapIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORY_CRITERIA_MAP, calculateOverallScore } from './lib/scoreUtils';
-import { detectCategory } from './lib/categoryUtils';
+import { detectCategory, getEventDetailUrl, getSlugOrId } from './lib/categoryUtils';
 
 const EventDetailWrapper = ({ 
   events, 
@@ -31,42 +32,92 @@ const EventDetailWrapper = ({
   onLikeReview, 
   currentUser, 
   setEditingEvent,
-  onUpdateEvent
+  onUpdateEvent,
+  isLoading
 }: { 
   events: SportsEvent[], 
   onRateClick: (event: SportsEvent) => void, 
   onLikeReview: (eventId: string, reviewId: string) => void, 
   currentUser: UserProfile | null, 
   setEditingEvent: (event: SportsEvent) => void,
-  onUpdateEvent: (event: SportsEvent) => void
+  onUpdateEvent: (event: SportsEvent) => void,
+  isLoading?: boolean
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const event = events.find((e) => e.id === id);
 
-  if (!event || (event.isActive === false && currentUser?.role !== 'admin')) {
+  const rawId = id || '';
+  const decodedId = useMemo(() => {
+    if (!rawId) return '';
+    try {
+      return decodeURIComponent(rawId).toLowerCase().trim();
+    } catch (e) {
+      return rawId.toLowerCase().trim();
+    }
+  }, [rawId]);
+
+  const event = useMemo(() => {
+    if (!decodedId) return null;
+    return events.find((e) => {
+      if (!e) return false;
+      const matchId = String(e.id || '').toLowerCase().trim();
+      const matchSlug = String(e.slug || '').toLowerCase().trim();
+      const matchPlaceId = String(e.googlePlaceId || '').toLowerCase().trim();
+      const matchTitleSlug = String(e.title || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9ğüşıöç]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const matchCleanTitleSlug = String(e.title || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      return (
+        matchId === decodedId ||
+        matchSlug === decodedId ||
+        (matchPlaceId && matchPlaceId === decodedId) ||
+        matchTitleSlug === decodedId ||
+        matchCleanTitleSlug === decodedId ||
+        matchId === rawId.toLowerCase().trim() ||
+        matchSlug === rawId.toLowerCase().trim()
+      );
+    });
+  }, [events, decodedId, rawId]);
+
+  if (!event) {
+    if (isLoading) {
+      return (
+        <div className="p-20 text-center flex flex-col items-center justify-center min-h-[50vh]">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Sayfa yükleniyor...</p>
+        </div>
+      );
+    }
     return (
       <div className="p-20 text-center flex flex-col items-center justify-center min-h-[50vh]">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">İçerik Bulunamadı</h2>
-        <p className="text-slate-500 dark:text-slate-400">Bu etkinlik/tesis yayından kaldırılmış veya gizlenmiş olabilir.</p>
+        <p className="text-slate-500 dark:text-slate-400">Bu etkinlik/tesis yayından kaldırılmış veya bağlantı adresi hatalı olabilir.</p>
         <button onClick={() => navigate('/')} className="mt-6 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Ana Sayfaya Dön</button>
       </div>
     );
   }
 
   return (
-    <EventDetailModal
-      event={event}
-      onClose={() => navigate('/')}
-      onOpenRateForm={onRateClick}
-      onLikeReview={onLikeReview}
-      onUpdateEvent={currentUser?.role === 'admin' ? onUpdateEvent : undefined}
-      onOpenEditModal={
-        currentUser?.role === 'admin'
-          ? (ev) => setEditingEvent(ev)
-          : undefined
-      }
-    />
+    <>
+      <SEOHead event={event} />
+      <EventDetailModal
+        event={event}
+        onClose={() => navigate('/')}
+        onOpenRateForm={onRateClick}
+        onLikeReview={onLikeReview}
+        onUpdateEvent={currentUser?.role === 'admin' ? onUpdateEvent : undefined}
+        onOpenEditModal={
+          currentUser?.role === 'admin'
+            ? (ev) => setEditingEvent(ev)
+            : undefined
+        }
+      />
+    </>
   );
 };
 
@@ -97,6 +148,8 @@ export default function App() {
   };
 
   // Sync facilities from Firestore database to site state on mount
+  const [isSyncingFirestore, setIsSyncingFirestore] = useState(true);
+
   useEffect(() => {
     const fetchFirestoreFacilities = async () => {
       try {
@@ -157,7 +210,7 @@ export default function App() {
               });
             });
 
-            // Merge Firestore facilities with prevEvents (overwriting old local reviews with latest Firestore translated reviews)
+            // Merge Firestore facilities with prevEvents
             const updated = prevEvents.map((ev) => firestoreEventsMap.get(ev.id) || ev);
 
             // Add any newly added Firestore facilities not in prevEvents
@@ -178,8 +231,11 @@ export default function App() {
         }
       } catch (err) {
         console.error('Initial Firestore fetch error:', err);
+      } finally {
+        setIsSyncingFirestore(false);
       }
     };
+
     fetchFirestoreFacilities();
   }, []);
 
@@ -449,6 +505,25 @@ export default function App() {
     navigate(`/yorum-yaz?id=${event.id}`);
   };
 
+  const detailElement = (
+    <EventDetailWrapper 
+      events={events}
+      onRateClick={(ev) => {
+        if (!currentUser) {
+          setIsAuthModalOpen(true);
+          return;
+        }
+        window.scrollTo(0, 0);
+        navigate(`/yorum-yaz?id=${ev.id}`);
+      }}
+      onLikeReview={handleLikeReview}
+      currentUser={currentUser}
+      setEditingEvent={setEditingEvent}
+      onUpdateEvent={handleUpdateEvent}
+      isLoading={isSyncingFirestore}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased flex flex-col pb-16 md:pb-0 selection:bg-blue-600 selection:text-white transition-colors duration-200">
       
@@ -482,76 +557,89 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 w-full bg-slate-50 dark:bg-slate-950 relative pt-2 transition-colors duration-200">
         <Routes>
-          <Route path="/tesis/:id" element={
-            <EventDetailWrapper 
-              events={events}
-              onRateClick={(ev) => {
-                if (!currentUser) {
-                  setIsAuthModalOpen(true);
-                  return;
-                }
-                window.scrollTo(0, 0);
-                navigate(`/yorum-yaz?id=${ev.id}`);
-              }}
-              onLikeReview={handleLikeReview}
-              currentUser={currentUser}
-              setEditingEvent={setEditingEvent}
-              onUpdateEvent={handleUpdateEvent}
-            />
-          } />
+          {/* Category & Detail Routes (Supports Tesis, Salon, Okul, Etkinlik & Slugs) */}
+          <Route path="/tesis/:id" element={detailElement} />
+          <Route path="/tesisler/:id" element={detailElement} />
+          <Route path="/salon/:id" element={detailElement} />
+          <Route path="/salonlar/:id" element={detailElement} />
+          <Route path="/okul/:id" element={detailElement} />
+          <Route path="/spor-okulu/:id" element={detailElement} />
+          <Route path="/spor-okullari/:id" element={detailElement} />
+          <Route path="/etkinlik/:id" element={detailElement} />
+          <Route path="/etkinlikler/:id" element={detailElement} />
+          <Route path="/detay/:id" element={detailElement} />
 
           <Route path="/yorum-yaz" element={
-            <ReviewPage
-              events={events}
-              onSubmitReview={handleAddReview}
-              currentUser={currentUser}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
+            <>
+              <SEOHead title="Spor Tesisi Değerlendir & Yorum Yaz" description="Deneyimlediğiniz fitness salonları, spor okulları veya spor tesisleri için tarafsız puan ve detaylı yorum bırakın." />
+              <ReviewPage
+                events={events}
+                onSubmitReview={handleAddReview}
+                currentUser={currentUser}
+                onOpenAuthModal={handleOpenAuthModal}
+              />
+            </>
           } />
 
           <Route path="/puanla" element={
-            <ReviewPage
-              events={events}
-              onSubmitReview={handleAddReview}
-              currentUser={currentUser}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
+            <>
+              <SEOHead title="Spor Tesisi Değerlendir & Yorum Yaz" description="Deneyimlediğiniz fitness salonları, spor okulları veya spor tesisleri için tarafsız puan ve detaylı yorum bırakın." />
+              <ReviewPage
+                events={events}
+                onSubmitReview={handleAddReview}
+                currentUser={currentUser}
+                onOpenAuthModal={handleOpenAuthModal}
+              />
+            </>
           } />
           
           <Route path="/admin" element={
-            <AdminPanel 
-              events={events}
-              onDeleteEvent={handleDeleteEvent}
-              onEditEvent={setEditingEvent}
-              onUpdateEvent={handleUpdateEvent}
-              onAddEvent={handleAddNewEvent}
-              onUpdateEventsBatch={handleUpdateEventsBatch}
-            />
+            <>
+              <SEOHead title="Yönetici Paneli" description="SporPuan tesis, onay ve içerik yönetim paneli." />
+              <AdminPanel 
+                events={events}
+                onDeleteEvent={handleDeleteEvent}
+                onEditEvent={setEditingEvent}
+                onUpdateEvent={handleUpdateEvent}
+                onAddEvent={handleAddNewEvent}
+                onUpdateEventsBatch={handleUpdateEventsBatch}
+              />
+            </>
           } />
 
           <Route path="/kurumsal" element={
-            <CorporatePage 
-              currentUser={currentUser}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
+            <>
+              <SEOHead title="Kurumsal Spor Tesisi Kaydı & Yönetimi" description="Spor tesisinizi SporPuan platformuna kaydedin, resmi doğrulama rozetini alın ve yüz binlerce sporsevere ulaşın." />
+              <CorporatePage 
+                currentUser={currentUser}
+                onOpenAuthModal={handleOpenAuthModal}
+              />
+            </>
           } />
 
           <Route path="/kurumsal-davet-formu" element={
-            <CorporateInviteForm 
-              currentUser={currentUser}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
+            <>
+              <SEOHead title="Kurumsal Kayıt & Başvuru Formu" description="SporPuan kurumsal tesis yönetimi başvuru formu." />
+              <CorporateInviteForm 
+                currentUser={currentUser}
+                onOpenAuthModal={handleOpenAuthModal}
+              />
+            </>
           } />
 
           <Route path="/kurumsal/davet-formu" element={
-            <CorporateInviteForm 
-              currentUser={currentUser}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
+            <>
+              <SEOHead title="Kurumsal Kayıt & Başvuru Formu" description="SporPuan kurumsal tesis yönetimi başvuru formu." />
+              <CorporateInviteForm 
+                currentUser={currentUser}
+                onOpenAuthModal={handleOpenAuthModal}
+              />
+            </>
           } />
 
           <Route path="/harita" element={
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col min-h-[calc(100vh-100px)]">
+              <SEOHead title="Haritada Spor Tesislerini ve Salonları Keşfet" description="Türkiye genelindeki fitness salonlarını, spor okullarını, yüzme havuzlarını ve stadyumları interaktif harita üzerinde keşfedin." />
               <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   <div>
@@ -569,7 +657,7 @@ export default function App() {
                 events={events}
                 onSelectEvent={(ev) => {
                   window.scrollTo(0, 0);
-                  navigate('/tesis/' + ev.id);
+                  navigate(getEventDetailUrl(ev));
                 }}
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
@@ -583,6 +671,24 @@ export default function App() {
           
           <Route path="/" element={
             <>
+              <SEOHead 
+                title={
+                  searchQuery 
+                    ? `"${searchQuery}" İle İlgili Spor Tesisleri & Yorumları`
+                    : selectedCategory !== 'Tümü' && selectedCity !== 'Tüm Şehirler'
+                    ? `${selectedCity} ${selectedCategory} Puanları ve Yorumları`
+                    : selectedCategory !== 'Tümü'
+                    ? `${selectedCategory} Puanları ve Detaylı İncelemeleri`
+                    : selectedCity !== 'Tüm Şehirler'
+                    ? `${selectedCity} Spor Tesisleri ve Salonları`
+                    : "SporPuan - Türkiye'nin Bağımsız Spor Tesisleri ve Etkinlikleri Puanlama Platformu"
+                }
+                description={
+                  selectedCategory !== 'Tümü'
+                    ? `Türkiye genelindeki en beğenilen ${selectedCategory.toLowerCase()} için kullanıcı puanları, hijyen, ekipman ve eğitmen değerlendirmeleri.`
+                    : "Türkiye'nin en kapsamlı bağımsız spor tesisi, salon, okul ve etkinlik puanlama ve inceleme platformu."
+                }
+              />
               {/* Hero Section */}
               <HeroBanner
                 onOpenAddReview={() => {
@@ -618,7 +724,7 @@ export default function App() {
                 <div className="py-6">
                   <EventMapView
                     events={events}
-                    onSelectEvent={(ev) => navigate('/tesis/' + ev.id)}
+                    onSelectEvent={(ev) => navigate(getEventDetailUrl(ev))}
                     selectedCategory={selectedCategory}
                     onSelectCategory={setSelectedCategory}
                     selectedCity={selectedCity}
@@ -636,9 +742,6 @@ export default function App() {
                       <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>
                           {selectedCategory === 'Tümü' ? 'Tüm Sonuçlar' : selectedCategory}
-                        </span>
-                        <span className="text-xs bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 px-2.5 py-0.5 rounded-full font-mono font-bold">
-                          {filteredEvents.length} Kayıt
                         </span>
                       </h2>
                     </div>
@@ -671,7 +774,7 @@ export default function App() {
                             event={event}
                             onSelectEvent={(ev) => {
                               window.scrollTo(0, 0);
-                              navigate('/tesis/' + ev.id);
+                              navigate(getEventDetailUrl(ev));
                             }}
                             onRateClick={handleRateClick}
                           />

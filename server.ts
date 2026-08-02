@@ -151,7 +151,7 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
 ]`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -261,7 +261,7 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
         body: JSON.stringify({
           textQuery: searchQuery,
           languageCode: 'tr',
-          maxResultCount: 20
+          maxResultCount: 5
         })
       });
 
@@ -286,8 +286,7 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
       }
 
       const rawPlaces = data.places || [];
-      const facilities = [];
-      for (const p of rawPlaces) {
+      const facilities = await Promise.all(rawPlaces.map(async (p) => {
         let photoUrl = null;
         const photosList = (p.photos || []).map((photo: any) => 
           `https://places.googleapis.com/v1/${photo.name}/media?key=${apiKey}&maxHeightPx=800&maxWidthPx=1200`
@@ -300,7 +299,7 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
         const formattedAddress = p.formattedAddress || '';
         const ratingVal = p.rating ? Number((p.rating * 2).toFixed(1)) : 8.8;
 
-        const mappedReviews = await translateAndAnalyzeReviews(p.reviews || [], facilityName);
+        const mappedReviews = await translateAndAnalyzeReviews((p.reviews || []).slice(0, 3), facilityName);
 
         // Auto detect appropriate category (Spor Salonları, Spor Okulları, Spor Etkinlikleri, Spor Tesisleri)
         const textToAnalyze = `${facilityName} ${formattedAddress}`.toLowerCase();
@@ -313,7 +312,7 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
           detectedCategory = 'Spor Etkinlikleri';
         }
 
-        facilities.push({
+        return {
           id: p.id,
           displayName: { text: facilityName },
           formattedAddress: formattedAddress,
@@ -325,8 +324,8 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
           overallScore: ratingVal,
           userRatingCount: p.userRatingCount || (mappedReviews.length > 0 ? mappedReviews.length : 1),
           reviews: mappedReviews
-        });
-      }
+        };
+      }));
 
       const filteredFacilities = facilities.filter((f: any) => f.image && !f.image.includes('unsplash.com'));
 
@@ -451,14 +450,14 @@ SADECE aşağıdaki JSON dizisi yapısını döndür (markdown tırnakları veya
 "${text}"`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt
       });
 
       const translatedText = response.text?.trim() || text;
       return res.json({ translatedText });
     } catch (error: any) {
-      console.warn('Single translate error or rate limit fallback:', error?.message || error);
+      console.log('Single translate error or rate limit fallback:', error?.message || error);
       // Fallback: return original text gracefully so client UI never breaks on quota limits
       const { text } = req.body || {};
       return res.json({ translatedText: text || '' });
@@ -508,7 +507,7 @@ Senden aşağıdaki JSON formatında bir yanıt beklenmektedir:
 Yanıtı SADECE ve SADECE yukarıdaki JSON formatında ver, markdown kod bloğu içinde olmasın.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -520,7 +519,7 @@ Yanıtı SADECE ve SADECE yukarıdaki JSON formatında ver, markdown kod bloğu 
 
       return res.json(parsedData);
     } catch (error: any) {
-      console.warn('Gemini SporPuan Analiz Hatası / Quota Fallback:', error?.message || error);
+      console.log('Gemini SporPuan Analiz Hatası / Quota Fallback:', error?.message || error);
       return res.json({
         overallScore: 8.8,
         scoreCategory: "Çok İyi",
@@ -559,17 +558,89 @@ Kullanıcının sorusu: "${question}"
 Yanıtını dostane, bilgilendirici, objektif ve Türkçe olarak ver. Gerektiğinde maddeler halinde ipuçları sun. Maksimum 200 kelime.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       });
 
       return res.json({ answer: response.text });
     } catch (error: any) {
-      console.warn('Gemini Advisor Hatası / Quota Fallback:', error?.message || error);
+      console.log('Gemini Advisor Hatası / Quota Fallback:', error?.message || error);
       return res.json({
         answer: `${eventTitle ? `"${eventTitle}"` : 'Spor tesisi'} ile ilgili sorunuz ("${question}") hakkında: Tesisimiz SporPuan üzerinde yüksek değerlendirme puanlarına ve doğrulanmış kullanıcı yorumlarına sahiptir. Detaylı bilgi ve randevular için doğrudan tesis ile iletişime geçebilirsiniz.`
       });
     }
+  });
+
+  // Technical SEO Route: robots.txt
+  app.get('/robots.txt', (req, res) => {
+    const host = req.headers.host || 'sporpuan.com';
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: ${baseUrl}/sitemap.xml`;
+
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(robotsTxt);
+  });
+
+  // Technical SEO Route: sitemap.xml
+  app.get('/sitemap.xml', (req, res) => {
+    const host = req.headers.host || 'sporpuan.com';
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const baseUrl = `${protocol}://${host}`;
+    const today = new Date().toISOString().split('T')[0];
+
+    const staticUrls = [
+      { loc: `${baseUrl}/`, priority: '1.0', changefreq: 'daily' },
+      { loc: `${baseUrl}/harita`, priority: '0.9', changefreq: 'daily' },
+      { loc: `${baseUrl}/kurumsal`, priority: '0.8', changefreq: 'weekly' },
+      { loc: `${baseUrl}/yorum-yaz`, priority: '0.8', changefreq: 'weekly' },
+      { loc: `${baseUrl}/puanla`, priority: '0.8', changefreq: 'weekly' }
+    ];
+
+    const sampleSlugs = [
+      'macfit-kanyon',
+      'fenerbahce-sukru-saracoglu-stadyumu',
+      'galatasaray-nef-stadyumu',
+      'besiktas-vodafone-park',
+      'anadolu-efes-basketbol-okulu',
+      'ted-ankara-kolejliler-spor-salonu',
+      'bursa-ataturk-spor-kompleksi',
+      'izmir-karsiyaka-olimpik-yuzme-havuzu'
+    ];
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+
+    for (const item of staticUrls) {
+      xml += `  <url>
+    <loc>${item.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${item.changefreq}</changefreq>
+    <priority>${item.priority}</priority>
+  </url>\n`;
+    }
+
+    for (const slug of sampleSlugs) {
+      xml += `  <url>
+    <loc>${baseUrl}/tesis/${slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>\n`;
+    }
+
+    xml += `</urlset>`;
+
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.send(xml);
   });
 
   // Serve public static logo and OG image files explicitly with correct content-types

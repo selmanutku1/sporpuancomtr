@@ -91,3 +91,44 @@ export function detectCategory(
   // 4. Spor Tesisleri (Complexes, Stadiums, Fields, Courts, Pools, Arenas, Facilities)
   return 'Spor Tesisleri';
 }
+
+/**
+ * Returns clean slug or ID for URL formatting
+ */
+export function getSlugOrId(event: { id: string; slug?: string; title?: string }): string {
+  if (event.slug && event.slug.trim()) return event.slug.trim();
+  if (event.title && event.title.trim()) {
+    const generated = event.title
+      .toLowerCase()
+      .replace(/[^a-z0-9ğüşıöç]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (generated) return generated;
+  }
+  return event.id;
+}
+
+/**
+ * Generates canonical, category-aware clean detail URLs
+ * Spor Salonları -> /salon/macfit-kanyon
+ * Spor Okulları -> /okul/fb-futbol-okulu
+ * Spor Etkinlikleri -> /etkinlik/gs-fb-derbi-2026
+ * Spor Tesisleri -> /tesis/sinan-erdem-salon
+ */
+export function getEventDetailUrl(event: { id: string; category?: string; slug?: string; title?: string }): string {
+  const identifier = getSlugOrId(event);
+  const cat = event.category || '';
+
+  let categoryPrefix = 'tesis';
+  if (cat === 'Spor Salonları') {
+    categoryPrefix = 'salon';
+  } else if (cat === 'Spor Okulları') {
+    categoryPrefix = 'okul';
+  } else if (cat === 'Spor Etkinlikleri') {
+    categoryPrefix = 'etkinlik';
+  } else {
+    categoryPrefix = 'tesis';
+  }
+
+  return `/${categoryPrefix}/${encodeURIComponent(identifier)}`;
+}
+

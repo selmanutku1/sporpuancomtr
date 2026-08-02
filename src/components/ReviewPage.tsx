@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { SportsEvent, RatingCriterion, Review, UserProfile, SportsCategory } from '../types';
 import { TURKEY_CITIES } from '../data/turkeyLocations';
 import { calculateOverallScore, CATEGORY_CRITERIA_MAP, getScoreBadgeColor, getScoreLabel } from '../lib/scoreUtils';
+import { getEventDetailUrl } from '../lib/categoryUtils';
 import { 
   Star, 
   Search, 
@@ -1210,7 +1211,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
               <button
-                onClick={() => navigate(`/tesis/${targetEvent.id}`)}
+                onClick={() => navigate(getEventDetailUrl(targetEvent))}
                 className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-md"
               >
                 Tesis Sayfasına Git

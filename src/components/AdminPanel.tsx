@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { UserProfile, SportsEvent, UserRole, Review, CorporateApplication, SportsCategory } from '../types';
 import { db } from '../lib/firebase';
 import { INITIAL_CORPORATE_APPS } from '../data/mockEvents';
-import { detectCategory } from '../lib/categoryUtils';
+import { detectCategory, getEventDetailUrl } from '../lib/categoryUtils';
 import { TURKEY_CITIES } from '../data/turkeyLocations';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDocs } from 'firebase/firestore';
 import { 
@@ -40,7 +41,8 @@ import {
   Award,
   Copy,
   Zap,
-  RefreshCw
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import { calculateOverallScore, CATEGORY_CRITERIA_MAP, getCriterionScore } from '../lib/scoreUtils';
 
@@ -668,7 +670,13 @@ Sporpuan Yönetimi`;
           customApiKey: customApiKey.trim() || undefined
         })
       });
-      const data = await response.json();
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (err) {
+        throw new Error('Sunucudan geçersiz bir yanıt alındı (Zaman aşımı veya ağ hatası olabilir). Lütfen daha az sonuç getirecek spesifik bir arama yapmayı deneyin.');
+      }
       
       if (!response.ok || data.error) {
         throw new Error(data.error || 'İçe aktarma hatası oluştu.');
@@ -1011,12 +1019,30 @@ Sporpuan Yönetimi`;
                 <tbody className="divide-y divide-slate-100">
                   {corporateApps
                     .filter(app => corporateFilter === 'all' || app.status === corporateFilter)
-                    .map(app => (
-                      <tr key={app.id} className="hover:bg-slate-50 transition">
-                        <td className="p-4">
-                          <div className="font-bold text-slate-800 text-sm">{app.facilityName}</div>
-                          <div className="text-xs text-slate-500">{app.category} - {app.city}</div>
-                        </td>
+                    .map(app => {
+                      const matchedFacility = events.find(e => e.id === app.publishedFacilityId || e.title.toLowerCase() === app.facilityName.toLowerCase());
+                      return (
+                        <tr key={app.id} className="hover:bg-slate-50 transition">
+                          <td className="p-4">
+                            {matchedFacility ? (
+                              <Link 
+                                to={getEventDetailUrl(matchedFacility)} 
+                                className="group/corp flex flex-col"
+                                title={`${app.facilityName} profilini gör`}
+                              >
+                                <div className="font-bold text-slate-800 text-sm group-hover/corp:text-blue-600 group-hover/corp:underline flex items-center gap-1.5">
+                                  {app.facilityName}
+                                  <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+                                </div>
+                                <div className="text-xs text-slate-500">{app.category} - {app.city}</div>
+                              </Link>
+                            ) : (
+                              <>
+                                <div className="font-bold text-slate-800 text-sm">{app.facilityName}</div>
+                                <div className="text-xs text-slate-500">{app.category} - {app.city}</div>
+                              </>
+                            )}
+                          </td>
                         <td className="p-4">
                           <div className="text-sm text-slate-700">{app.contactName}</div>
                           <div className="text-xs text-slate-500">{app.contactEmail}</div>
@@ -1070,7 +1096,8 @@ Sporpuan Yönetimi`;
                           </button>
                         </td>
                       </tr>
-                  ))}
+                    );
+                  })}
                   {corporateApps.filter(app => corporateFilter === 'all' || app.status === corporateFilter).length === 0 && (
                     <tr>
                       <td colSpan={5} className="p-8 text-center text-slate-500 text-sm">
@@ -1635,12 +1662,22 @@ ${fullUrl}`;
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredEvents.map(ev => (
-                  <tr key={ev.id} className={`hover:bg-slate-50 ${ev.isActive === false ? 'opacity-60 bg-slate-50/50' : ''}`}>
+                  <tr key={ev.id} className={`hover:bg-slate-50 transition-colors ${ev.isActive === false ? 'opacity-60 bg-slate-50/50' : ''}`}>
                     <td className="px-4 py-3 font-medium text-slate-800">
-                      <div className="flex items-center gap-3">
-                        <img src={ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'} alt={ev.title} className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0" />
-                        <span className="line-clamp-2">{ev.title}</span>
-                      </div>
+                      <Link 
+                        to={getEventDetailUrl(ev)} 
+                        className="flex items-center gap-3 group/partner hover:text-blue-600 transition-colors"
+                        title={`${ev.title} profil sayfasına git`}
+                      >
+                        <img 
+                          src={ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'} 
+                          alt={ev.title} 
+                          className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0 group-hover/partner:scale-105 transition-transform" 
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="line-clamp-2 font-bold group-hover/partner:underline">{ev.title}</span>
+                        </div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{ev.category}</td>
                     <td className="px-4 py-3 text-slate-600">{ev.city}</td>
@@ -1655,13 +1692,13 @@ ${fullUrl}`;
                     <td className="px-4 py-3 text-right space-x-3">
                       <button 
                         onClick={() => onUpdateEvent({ ...ev, isActive: ev.isActive === false ? true : false })} 
-                        className={`${ev.isActive !== false ? 'text-amber-500 hover:text-amber-700' : 'text-emerald-500 hover:text-emerald-700'} font-bold transition`}
+                        className={`${ev.isActive !== false ? 'text-amber-500 hover:text-amber-700' : 'text-emerald-500 hover:text-emerald-700'} font-bold transition text-xs`}
                       >
                         {ev.isActive !== false ? 'Gizle' : 'Yayınla'}
                       </button>
                       <button 
                         onClick={() => onEditEvent(ev)} 
-                        className="text-blue-500 hover:text-blue-700 font-bold transition"
+                        className="text-blue-500 hover:text-blue-700 font-bold transition text-xs"
                       >
                         Düzenle
                       </button>
@@ -1673,7 +1710,7 @@ ${fullUrl}`;
                             onConfirm: () => onDeleteEvent(ev.id)
                           });
                         }} 
-                        className="text-rose-500 hover:text-rose-700 font-bold transition"
+                        className="text-rose-500 hover:text-rose-700 font-bold transition text-xs"
                       >
                         Sil
                       </button>

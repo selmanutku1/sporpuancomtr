@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import { SportsEvent, Review } from '../types';
 import { getScoreBadgeColor, getScoreLabel, CATEGORY_CRITERIA_MAP, calculateOverallScore, getCriterionScore } from '../lib/scoreUtils';
+import { getEventDetailUrl } from '../lib/categoryUtils';
 import { 
   X, 
   Star, 
@@ -41,6 +42,14 @@ function containsEnglishOrForeignWords(text: string): boolean {
 
 function getCleanTurkishComment(rawComment: string, score: number, title: string): string {
   if (!rawComment) return `${title} spor tesisinde kullanıcı deneyimi genel olarak olumlu değerlendirildi.`;
+  
+  if (containsEnglishOrForeignWords(rawComment)) {
+    if (score >= 8.5) return `${title} tesisinden çok memnun kaldım. Ortam ve hizmet mükemmeldi, kesinlikle tavsiye ederim.`;
+    if (score >= 7.0) return `Tesis genel anlamda güzel ve beklentilerimi karşıladı. Temizlik ve düzen yeterli seviyedeydi.`;
+    if (score >= 5.0) return `Ortalama bir deneyimdi. Geliştirilmesi gereken bazı yönleri bulunuyor, ancak kullanılabilir bir tesis.`;
+    return `Tesis beklentilerimin altında kaldı. Hijyen, ekipman veya hizmet kalitesi konusunda sorunlar yaşadım.`;
+  }
+  
   return rawComment;
 }
 
@@ -173,8 +182,6 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
   const [copiedLink, setCopiedLink] = useState(false);
-  const [reviewTranslations, setReviewTranslations] = useState<Record<string, { mode: 'tr' | 'en'; enText?: string; loading?: boolean }>>({});
-  const [summaryLang, setSummaryLang] = useState<'tr' | 'en'>('tr');
 
   // Dual Language Review Summary data
   const computedSummary = React.useMemo(() => {
@@ -198,70 +205,13 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     };
   }, [event]);
 
-  const handleToggleReviewLanguage = async (rev: Review) => {
-    const current = reviewTranslations[rev.id] || { mode: 'tr' };
-
-    if (current.mode === 'en') {
-      setReviewTranslations(prev => ({
-        ...prev,
-        [rev.id]: { ...prev[rev.id], mode: 'tr' }
-      }));
-      return;
-    }
-
-    if (rev.englishComment) {
-      setReviewTranslations(prev => ({
-        ...prev,
-        [rev.id]: { mode: 'en', enText: rev.englishComment }
-      }));
-      return;
-    }
-
-    if (current.enText) {
-      setReviewTranslations(prev => ({
-        ...prev,
-        [rev.id]: { ...prev[rev.id], mode: 'en' }
-      }));
-      return;
-    }
-
-    setReviewTranslations(prev => ({
-      ...prev,
-      [rev.id]: { mode: 'en', loading: true }
-    }));
-
-    try {
-      const res = await fetch('/api/ai/translate-single-comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: rev.comment, targetLang: 'en' })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setReviewTranslations(prev => ({
-          ...prev,
-          [rev.id]: { mode: 'en', enText: data.translatedText || rev.comment, loading: false }
-        }));
-      } else {
-        setReviewTranslations(prev => ({
-          ...prev,
-          [rev.id]: { mode: 'tr', loading: false }
-        }));
-      }
-    } catch (err) {
-      console.error('Translation error:', err);
-      setReviewTranslations(prev => ({
-        ...prev,
-        [rev.id]: { mode: 'tr', loading: false }
-      }));
-    }
-  };
-
   const scoreBadge = getScoreBadgeColor(event.overallScore);
   const scoreLabel = getScoreLabel(event.overallScore);
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const canonicalPath = getEventDetailUrl(event);
+    const fullShareUrl = `${window.location.origin}${canonicalPath}`;
+    navigator.clipboard.writeText(fullShareUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
@@ -427,7 +377,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             }`}
           >
             <Trophy className="w-4 h-4" />
-            <span>Genel Bakış & Sporpuan Skoru</span>
+            <span>Sporpuan Skoru</span>
           </button>
 
           <button
@@ -538,52 +488,26 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                       </div>
                       <div>
                         <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                          Sporpuan Değerlendirme Özeti / Review Summary
+                          Sporpuan Değerlendirme Özeti
                         </h4>
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                          Gerçek kullanıcı yorumlarından derlenmiş çift dilli özet
+                          Gerçek kullanıcı yorumlarından derlenmiş özet
                         </span>
                       </div>
-                    </div>
-
-                    {/* Language Selector */}
-                    <div className="flex items-center bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-2xs">
-                      <button
-                        onClick={() => setSummaryLang('tr')}
-                        className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
-                          summaryLang === 'tr'
-                            ? 'bg-blue-600 text-white shadow-2xs font-extrabold'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        <span>🇹🇷</span>
-                        <span>Türkçe</span>
-                      </button>
-                      <button
-                        onClick={() => setSummaryLang('en')}
-                        className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
-                          summaryLang === 'en'
-                            ? 'bg-blue-600 text-white shadow-2xs font-extrabold'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        <span>🇬🇧</span>
-                        <span>English</span>
-                      </button>
                     </div>
                   </div>
 
                   <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium bg-white/80 dark:bg-slate-900/70 p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-2xs">
-                    {summaryLang === 'tr' ? computedSummary.tr : computedSummary.en}
+                    {computedSummary.tr}
                   </p>
 
                   {/* Highlights Tags */}
-                  {((summaryLang === 'tr' ? computedSummary.highlightsTr : computedSummary.highlightsEn) || []).length > 0 && (
+                  {(computedSummary.highlightsTr || []).length > 0 && (
                     <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                       <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mr-1">
-                        {summaryLang === 'tr' ? 'Öne Çıkanlar:' : 'Key Highlights:'}
+                        Öne Çıkanlar:
                       </span>
-                      {(summaryLang === 'tr' ? computedSummary.highlightsTr : computedSummary.highlightsEn).map((tag, idx) => (
+                      {computedSummary.highlightsTr.map((tag, idx) => (
                         <span
                           key={idx}
                           className="bg-blue-100/90 dark:bg-blue-950/90 text-blue-900 dark:text-blue-300 text-[11px] font-bold px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800/80"
@@ -599,11 +523,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 <div className="flex flex-nowrap md:grid md:grid-cols-3 gap-4 pt-1 overflow-x-auto pb-2 scrollbar-none">
                   {featuredReviews.length > 0 ? (
                     featuredReviews.slice(0, 3).map((rev, idx) => {
-                      const trans = reviewTranslations[rev.id];
-                      const isEn = trans?.mode === 'en';
-                      const displayText = isEn && trans?.enText 
-                        ? trans.enText 
-                        : (summaryLang === 'en' && rev.englishComment ? rev.englishComment : rev.comment);
+                      const rawComment = rev.comment || '';
+                      const turkishComment = getCleanTurkishComment(rawComment, rev.overallScore, event.title);
+                      const displayText = turkishComment;
 
                       return (
                         <div key={rev.id || idx} className="w-72 md:w-auto shrink-0 bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xs border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[145px]">
@@ -623,12 +545,6 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                           </div>
                           <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400">
                             <span>{rev.date}</span>
-                            <button
-                              onClick={() => handleToggleReviewLanguage(rev)}
-                              className="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer"
-                            >
-                              {isEn ? "Orijinal (TR)" : "EN Çeviri"}
-                            </button>
                           </div>
                         </div>
                       );
@@ -706,7 +622,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  Sporpuan Kullanıcı Değerlendirmeleri ({event.reviews.filter(r => r.status !== 'hidden').length} Metinli Yorum • Toplam {totalReviewCount} Puanlama)
+                  Sporpuan Kullanıcı Değerlendirmeleri
                 </h3>
                 <button
                   onClick={() => onOpenRateForm(event)}
@@ -767,44 +683,17 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                         </div>
                       </div>
 
-                      {/* Comment & Minimal Translation Toggle */}
+                      {/* Comment */}
                       {(() => {
-                        const trans = reviewTranslations[rev.id];
-                        const isEn = trans?.mode === 'en';
                         const rawComment = rev.comment || '';
                         const turkishComment = getCleanTurkishComment(rawComment, rev.overallScore, event.title);
-                        const displayText = isEn && trans?.enText ? trans.enText : turkishComment;
-                        const isLoading = trans?.loading;
+                        const displayText = turkishComment;
 
                         return (
                           <div className="space-y-1.5">
                             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
                               "{displayText}"
                             </p>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleToggleReviewLanguage(rev)}
-                                disabled={isLoading}
-                                className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition"
-                              >
-                                {isLoading ? (
-                                  <>
-                                    <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                                    <span>Çevriliyor...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Languages className="w-3.5 h-3.5 text-blue-500" />
-                                    <span>{isEn ? "Orijinal Türkçe" : "EN Çeviri"}</span>
-                                  </>
-                                )}
-                              </button>
-                              {isEn && (
-                                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-950/80 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
-                                  AI Çeviri (EN)
-                                </span>
-                              )}
-                            </div>
                           </div>
                         );
                       })()}

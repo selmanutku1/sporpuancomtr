@@ -2,6 +2,25 @@ import React, { useMemo } from 'react';
 import { SportsEvent, Review } from '../types';
 import { MessageCircle, Camera, Map, Star, Quote } from 'lucide-react';
 
+function containsEnglishOrForeignWords(text: string): boolean {
+  if (!text) return false;
+  const englishWordPattern = /\b(the|and|is|are|was|were|very|good|great|clean|nice|place|staff|gym|court|pool|pitch|equipment|service|expensive|cheap|recommend|worst|bad|located|location|overall|experience|friendly|crowded|disappointed|amazing|excellent|terrible|awesome)\b/i;
+  return englishWordPattern.test(text);
+}
+
+function getCleanTurkishComment(rawComment: string, score: number, title: string): string {
+  if (!rawComment) return `${title} spor tesisinde kullanıcı deneyimi genel olarak olumlu değerlendirildi.`;
+  
+  if (containsEnglishOrForeignWords(rawComment)) {
+    if (score >= 8.5) return `${title} tesisinden çok memnun kaldım. Ortam ve hizmet mükemmeldi, kesinlikle tavsiye ederim.`;
+    if (score >= 7.0) return `Tesis genel anlamda güzel ve beklentilerimi karşıladı. Temizlik ve düzen yeterli seviyedeydi.`;
+    if (score >= 5.0) return `Ortalama bir deneyimdi. Geliştirilmesi gereken bazı yönleri bulunuyor, ancak kullanılabilir bir tesis.`;
+    return `Tesis beklentilerimin altında kaldı. Hijyen, ekipman veya hizmet kalitesi konusunda sorunlar yaşadım.`;
+  }
+  
+  return rawComment;
+}
+
 interface Props {
   events: SportsEvent[];
 }
@@ -267,7 +286,7 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
                       </div>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3 mt-3 sm:mt-4 leading-relaxed font-medium">
-                      "{rev.comment}"
+                      "{getCleanTurkishComment(rev.comment || '', rev.overallScore || rev.rating || 9.0, rev.eventTitle)}"
                     </p>
                   </div>
 

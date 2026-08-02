@@ -79,12 +79,6 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <BadgeCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 inline" title="Onaylı Tesis" />
               )}
             </div>
-
-            {event.sourceProvider && (
-              <span className="text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 px-1.5 py-0.5 rounded shrink-0">
-                ⚡ {event.sourceProvider.replace(/firebase\s*firestore|firestore|firebase|google maps/gi, 'Veritabanı')}
-              </span>
-            )}
           </div>
 
           {/* Title */}
