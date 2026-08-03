@@ -1,75 +1,36 @@
 const fs = require('fs');
+
 let content = fs.readFileSync('src/App.tsx', 'utf8');
 
-const target = `  const handleUpdateEvent = async (updatedEvent: SportsEvent) => {
-    const updatedList = events.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev));
-    updateEventsState(updatedList);
+if (!content.includes('ShareExperienceCTA')) {
+  // Add import
+  content = content.replace("import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';",
+    "import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';\nimport { ShareExperienceCTA } from './components/ShareExperienceCTA';");
+    
+  // Add component before Footer but inside Route element
+  const targetStr = "              {/* Sporpuanlılar Ne Demiş Section */}\n              <SporpuanlilarNeDemis events={events} />\n            </>\n          } />";
+  const replacementStr = `              {/* Sporpuanlılar Ne Demiş Section */}
+              <SporpuanlilarNeDemis events={events} />
 
-    try {`;
-
-const replacement = `  const handleUpdateEvent = async (updatedEvent: SportsEvent) => {
-    const isNew = !events.some(ev => ev.id === updatedEvent.id);
-    const updatedList = isNew 
-      ? [updatedEvent, ...events] 
-      : events.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev));
-    updateEventsState(updatedList);
-
-    try {`;
-
-if (content.includes(target)) {
-  content = content.replace(target, replacement);
-  fs.writeFileSync('src/App.tsx', content);
-  console.log('App.tsx Updated');
+              <ShareExperienceCTA onOpenAddReview={() => {
+                if (!currentUser) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                window.scrollTo(0, 0);
+                navigate('/yorum-yaz');
+              }} />
+            </>
+          } />`;
+          
+  if (content.includes(targetStr)) {
+    content = content.replace(targetStr, replacementStr);
+    fs.writeFileSync('src/App.tsx', content);
+    console.log('Added ShareExperienceCTA to App.tsx');
+  } else {
+    console.log('Target string not found for ShareExperienceCTA injection');
+  }
 } else {
-  console.log('Target not found in App.tsx');
+  console.log('ShareExperienceCTA already imported');
 }
 
-let adminContent = fs.readFileSync('src/components/AdminPanel.tsx', 'utf8');
-const adminTarget = `onClick={() => onAddEvent({
-                  id: Math.random().toString(36).substr(2, 9),
-                  title: '',
-                  slug: '',
-                  category: 'Spor Tesisleri',
-                  city: '',
-                  venue: '',
-                  date: '',
-                  organizer: 'Doğrulanmış Spor Tesisi',
-                  organizerVerified: true,
-                  image: '',
-                  description: '',
-                  overallScore: 0,
-                  ratingBreakdown: {},
-                  reviewCount: 0,
-                  featured: false,
-                  isActive: true,
-                  tags: [],
-                  reviews: []
-                })}`;
-const adminReplacement = `onClick={() => onEditEvent({
-                  id: Math.random().toString(36).substr(2, 9),
-                  title: '',
-                  slug: '',
-                  category: 'Spor Tesisleri',
-                  city: '',
-                  venue: '',
-                  date: '',
-                  organizer: 'Doğrulanmış Spor Tesisi',
-                  organizerVerified: true,
-                  image: '',
-                  description: '',
-                  overallScore: 0,
-                  ratingBreakdown: {},
-                  reviewCount: 0,
-                  featured: false,
-                  isActive: true,
-                  tags: [],
-                  reviews: []
-                })}`;
-
-if (adminContent.includes(adminTarget)) {
-  adminContent = adminContent.replace(adminTarget, adminReplacement);
-  fs.writeFileSync('src/components/AdminPanel.tsx', adminContent);
-  console.log('AdminPanel.tsx Updated');
-} else {
-  console.log('Target not found in AdminPanel.tsx');
-}

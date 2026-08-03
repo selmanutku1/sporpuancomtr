@@ -20,6 +20,7 @@ import { CorporatePage } from './components/CorporatePage';
 import { CorporateInviteForm } from './components/CorporateInviteForm';
 import { ReviewPage } from './components/ReviewPage';
 import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';
+import { ShareExperienceCTA } from './components/ShareExperienceCTA';
 import { Footer } from './components/Footer';
 import { SEOHead } from './components/SEOHead';
 import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map as MapIcon, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -898,6 +899,15 @@ export default function App() {
               
               {/* Sporpuanlılar Ne Demiş Section */}
               <SporpuanlilarNeDemis events={events} />
+
+              <ShareExperienceCTA onOpenAddReview={() => {
+                if (!currentUser) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                window.scrollTo(0, 0);
+                navigate('/yorum-yaz');
+              }} />
             </>
           } />
         </Routes>

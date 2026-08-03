@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { SportsEvent, RatingCriterion, Review, UserProfile, SportsCategory } from '../types';
@@ -261,15 +262,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* PAGE TOP NAVIGATION BAR */}
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-black">
-              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-              <span>Sporpuan Yorum & Değerlendirme</span>
-            </span>
-          </div>
-        </div>
+
 
         {/* ================= VENUE SEARCH & SELECTION ================= */}
         {!submittedReview && !targetEvent && (
@@ -776,91 +769,33 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                       <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
                         Değerlendirmeniz Hazırlanıyor
                       </p>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1 font-normal">
-                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>Kaydırıcıları hareket ettirdikçe puanlar güncellenir</span>
-                      </div>
+                      
                     </div>
                   </div>
-
-                  {/* Criteria Circular Rings & Recommendation Rings */}
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-5 w-full lg:w-auto justify-start lg:justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200/60 dark:border-slate-800/80">
-                    
-                    {/* Live Criteria Rings */}
-                    <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto pb-1 scrollbar-none">
-                      {criteriaList.map((crit) => {
-                        const scoreVal = scores[crit.key] || 8;
-                        return (
-                          <div key={crit.key} className="flex flex-col items-center min-w-[55px]">
-                            <span className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 text-center block mb-1 whitespace-nowrap">
-                              {crit.label}
-                            </span>
-                            <div className="w-11 h-11 rounded-full border-[2.5px] border-blue-500 bg-white dark:bg-slate-800 flex items-center justify-center font-extrabold text-xs text-slate-900 dark:text-white shadow-2xs">
-                              {scoreVal.toFixed(1)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Divider */}
-                    <div className="w-[1px] h-10 bg-slate-300 dark:bg-slate-700 hidden sm:block shrink-0 mx-1" />
-
-                    {/* Percentage Rings */}
-                    <div className="flex items-center gap-4">
-                      {/* Tavsiye Ring */}
-                      <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 text-center block mb-1 whitespace-nowrap">
-                          Tavsiye
-                        </span>
-                        <div className="w-12 h-12 rounded-full border-[3px] border-blue-600 bg-blue-50/60 dark:bg-blue-950/60 flex items-center justify-center font-black text-xs text-blue-600 dark:text-blue-400 shadow-2xs">
-                          %{Math.min(99, Math.max(70, Math.round((currentOverall / 10) * 100)))}
-                        </div>
-                      </div>
-
-                      {/* Fiyat Performans Ring */}
-                      <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 text-center block mb-1 whitespace-nowrap">
-                          Fiyat Perf.
-                        </span>
-                        <div className="w-12 h-12 rounded-full border-[3px] border-amber-400 bg-amber-50/60 dark:bg-amber-950/60 flex items-center justify-center font-black text-xs text-amber-600 dark:text-amber-400 shadow-2xs">
-                          %{Math.min(95, Math.max(65, Math.round(((scores['price'] || scores['equipment'] || currentOverall) / 10) * 100)))}
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-
                 </div>
-
               </div>
 
               {/* 1. CRITERIA SCORE SLIDERS */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+              <div className="space-y-4 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-3xl border border-slate-200 dark:border-slate-700/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-700/60 pb-3 gap-2">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                     <span>5 Boyutlu Değerlendirme Puanlarınız</span>
                   </h3>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    (1 = Zayıf, 10 = Mükemmel)
-                  </span>
+                  
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-2">
                   {criteriaList.map((criterion) => {
                     const val = scores[criterion.key] || 8;
                     return (
-                      <div key={criterion.key} className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                      <div key={criterion.key} className="space-y-1.5">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 block"></span>
                             {criterion.label}
-                          </label>
-                          <span className={`px-2.5 py-0.5 rounded text-xs font-black ${
-                            val >= 8 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' :
-                            val >= 6 ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' :
-                            'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                          }`}>
+                          </span>
+                          <span className="font-black text-blue-600 dark:text-blue-400 text-sm bg-white dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs">
                             {val} / 10
                           </span>
                         </div>
@@ -869,6 +804,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                           value={val} 
                           onChange={(newVal) => setScores({ ...scores, [criterion.key]: newVal })} 
                         />
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-snug">{criterion.desc}</p>
                       </div>
                     );
                   })}

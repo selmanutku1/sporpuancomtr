@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar';
 import React, { useMemo } from 'react';
 import { SportsEvent, Review } from '../types';
 import { MessageCircle, Camera, Map, Star, Quote } from 'lucide-react';
@@ -269,7 +270,7 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         {rev.userAvatar ? (
-                          <img referrerPolicy="no-referrer" src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt="" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700" />
+                          <Avatar src={rev.userAvatar} name={rev.userName} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700" />
                         ) : (
                           <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${avatarColor} flex items-center justify-center font-bold text-sm sm:text-base`}>
                             {rev.userName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()}

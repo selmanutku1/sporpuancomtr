@@ -52,6 +52,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
 
   const [userName, setUserName] = useState(currentUser?.name || '');
   const [scores, setScores] = useState<RatingCriterion>({});
+  const [hoveredScores, setHoveredScores] = useState<RatingCriterion | null>(null);
   
   // Initialize scores based on category
   useEffect(() => {
@@ -141,7 +142,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
     }
   }, [selectedEvent]);
 
-  const currentScore = calculateOverallScore(scores, targetEvent?.category || 'Spor Etkinlikleri');
+  const currentScore = calculateOverallScore(hoveredScores || scores, targetEvent?.category || 'Spor Etkinlikleri');
   const scoreBadge = getScoreBadgeColor(currentScore);
   const scoreLabel = getScoreLabel(currentScore);
 
@@ -229,17 +230,17 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
             
             {/* User Account Status Banner */}
             {currentUser ? (
-              <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 border border-blue-200 dark:border-slate-700 rounded-xl p-4 sm:p-3 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-3">
                   <img referrerPolicy="no-referrer"
                     src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
                     alt={currentUser.name}
-                    className="w-8 h-8 rounded-full object-cover border border-blue-300 shrink-0"
+                    className="w-10 h-10 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-white shadow-xs shrink-0"
                   />
                   <div>
-                    <p className="text-xs font-extrabold text-blue-900 dark:text-blue-200">{currentUser.name}</p>
-                    <span className="text-[10px] text-blue-700 dark:text-blue-300 font-medium">
-                      {currentUser.title || 'Doğrulanmış Üye Sporsever'}
+                    <p className="text-sm sm:text-xs font-black text-slate-800 dark:text-slate-200">{currentUser.name}</p>
+                    <span className="text-[11px] sm:text-[10px] text-blue-600 dark:text-blue-400 font-bold bg-blue-100/50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md inline-block mt-0.5">
+                      {currentUser.role === 'admin' ? 'Yönetici' : currentUser.role === 'organizer' ? 'Organizatör' : 'Sporsever'}
                     </span>
                   </div>
                 </div>
@@ -303,35 +304,48 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
             </div>
 
             {/* 5 Criteria Sliders */}
-            <div className="space-y-4 bg-slate-50 dark:bg-slate-850 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                5 Boyutlu Değerlendirme Skalası (1 - 10 Puan):
-              </h4>
+            <div className="space-y-5 bg-slate-50 dark:bg-slate-800/40 p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-700/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-700/60 pb-2 gap-2">
+                <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  <span>5 Boyutlu Puanlama</span>
+                </h4>
+                
+              </div>
 
-              {(CATEGORY_CRITERIA_MAP[targetEvent?.category || 'Spor Etkinlikleri'] || []).map((crit) => {
-                const val = scores[crit.key] || 8;
+              <div className="grid grid-cols-1 gap-5">
+                {(CATEGORY_CRITERIA_MAP[targetEvent?.category || 'Spor Etkinlikleri'] || []).map((crit) => {
+                  const val = (hoveredScores ? hoveredScores[crit.key] : scores[crit.key]) || 8;
 
-                return (
-                  <div key={crit.key} className="space-y-1">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 block"></span>
-                        <span>{crit.label}</span>
-                      </span>
-                      <span className="font-black text-blue-600 dark:text-blue-400 text-sm bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">
-                        {val} / 10
-                      </span>
+                  return (
+                    <div key={crit.key} className="space-y-1.5">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500 block"></span>
+                          <span>{crit.label}</span>
+                        </span>
+                        <span className="font-black text-blue-600 dark:text-blue-400 text-sm bg-white dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs">
+                          {val} / 10
+                        </span>
+                      </div>
+
+                      <HoverRatingBar 
+                        onHoverChange={(newVal) => {
+                          if (newVal === null) {
+                            setHoveredScores(null);
+                          } else {
+                            setHoveredScores({ ...scores, [crit.key]: newVal });
+                          }
+                        }}
+                        value={val} 
+                        onChange={(newVal) => handleCriterionChange(crit.key, newVal)} 
+                      />
+
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-snug">{crit.desc}</p>
                     </div>
-
-                    <HoverRatingBar 
-                      value={val} 
-                      onChange={(newVal) => handleCriterionChange(crit.key, newVal)} 
-                    />
-
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{crit.desc}</p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             {/* User Name & Comment */}

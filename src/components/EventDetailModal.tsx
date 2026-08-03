@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
@@ -32,6 +33,51 @@ import {
   Languages,
   Loader2
 } from 'lucide-react';
+
+
+const CircularProgress: React.FC<{ score: number, max?: number, label: string, colorClass: string, size?: number, stroke?: number }> = ({ score, max = 10, label, colorClass, size = 52, stroke = 4 }) => {
+  const radius = (size - stroke) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const progress = (score / max) * 100;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 shrink-0">
+      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+        <svg height={size} width={size} className="transform -rotate-90">
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+            className="text-slate-100 dark:text-slate-800"
+          />
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeDasharray={circumference + ' ' + circumference}
+            style={{ strokeDashoffset }}
+            strokeLinecap="round"
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+            className={`transition-all duration-1000 ease-out ${colorClass}`}
+          />
+        </svg>
+        <span className="absolute font-black text-xs text-slate-800 dark:text-slate-100">
+          {max === 100 ? `%${Math.round(score)}` : score.toFixed(1)}
+        </span>
+      </div>
+      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center leading-tight whitespace-pre-wrap max-w-[60px]">
+        {label}
+      </span>
+    </div>
+  );
+};
+
 
 // Helper to check for English words in review
 function containsEnglishOrForeignWords(text: string): boolean {
@@ -392,7 +438,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               <div className="bg-[#f0f4f8] dark:bg-slate-850 rounded-[28px] p-4 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 sm:space-y-6">
                 
                 {/* TOP ROW: Overall Rating + Sub-criteria Rings + Percentage Rings */}
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-4 border-b border-slate-200/60 dark:border-slate-800/80">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-4 border-b border-slate-200/60 dark:border-slate-800/80">
                   
                   {/* Left: Speech Bubble Badge & Title */}
                   <div className="flex items-center gap-4">
@@ -417,56 +463,53 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Middle & Right: Sub-criteria Rings & Percentage Rings */}
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-6 w-full lg:w-auto justify-start lg:justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200/60 dark:border-slate-800/80">
-                    
-                    {/* Sub-criteria items */}
-                    <div className="flex items-center gap-3 sm:gap-5 overflow-x-auto pb-1 scrollbar-none">
+                  {/* Right: Sub-criteria Rings & Percentage Rings */}
+                  <div className="flex flex-wrap items-center justify-center lg:justify-end gap-4 sm:gap-6 w-full pt-4 md:pt-0 border-t md:border-t-0 border-slate-200/60 dark:border-slate-800/80">
+                       
+                    {/* Sub-criteria items (Wrap instead of overflow to prevent cut-off) */}
+                    <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 w-full lg:w-auto">
                       {(CATEGORY_CRITERIA_MAP[event.category] || []).map((crit) => {
                         const score = getCriterionScore(event.ratingBreakdown, crit.key, event.overallScore);
                         return (
-                          <div key={crit.key} className="flex flex-col items-center min-w-[55px]">
-                            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 text-center block mb-1.5 whitespace-nowrap">
-                              {crit.label}
-                            </span>
-                            <div className="w-11 h-11 rounded-full border-[2.5px] border-blue-500 bg-white dark:bg-slate-800 flex items-center justify-center font-extrabold text-xs text-slate-900 dark:text-white shadow-2xs">
-                              {score.toFixed(1)}
-                            </div>
-                          </div>
+                          <CircularProgress 
+                            key={crit.key} 
+                            score={score} 
+                            max={10} 
+                            label={crit.label} 
+                            colorClass="text-blue-500" 
+                          />
                         );
                       })}
-                    </div>
 
-                    {/* Divider */}
-                    <div className="w-[1px] h-10 bg-slate-300 dark:bg-slate-700 hidden sm:block shrink-0 mx-1" />
+                      {/* Divider */}
+                      <div className="w-[1px] h-12 bg-slate-200 dark:bg-slate-700/60 shrink-0 mx-1 hidden sm:block" />
 
-                    {/* Percentage Rings */}
-                    <div className="flex items-center gap-4">
-                      {/* Tavsiye */}
-                      <div className="flex flex-col items-center">
-                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 text-center block mb-1.5 whitespace-nowrap">
-                          Tavsiye
-                        </span>
-                        <div className="w-12 h-12 rounded-full border-[3px] border-blue-600 bg-blue-50/60 dark:bg-blue-950/60 flex items-center justify-center font-black text-xs text-blue-600 dark:text-blue-400 shadow-2xs">
-                          %{tavsiyePercent}
-                        </div>
-                      </div>
+                      <div className="flex items-center justify-center gap-4 sm:gap-6">
+                        {/* Tavsiye */}
+                        <CircularProgress 
+                          score={tavsiyePercent} 
+                          max={100} 
+                          label={"Tavsiye\nOranı"} 
+                          colorClass="text-emerald-500" 
+                          size={56} 
+                          stroke={4.5} 
+                        />
 
-                      {/* Fiyat Performans */}
-                      <div className="flex flex-col items-center">
-                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 text-center block mb-1.5 whitespace-nowrap">
-                          Fiyat Performans
-                        </span>
-                        <div className="w-12 h-12 rounded-full border-[3px] border-amber-400 bg-amber-50/60 dark:bg-amber-950/60 flex items-center justify-center font-black text-xs text-amber-600 dark:text-amber-400 shadow-2xs">
-                          %{fiyatPercent}
-                        </div>
+                        {/* Fiyat Performans */}
+                        <CircularProgress 
+                          score={fiyatPercent} 
+                          max={100} 
+                          label={"Fiyat\nPerformans"} 
+                          colorClass="text-amber-500" 
+                          size={56} 
+                          stroke={4.5} 
+                        />
                       </div>
                     </div>
 
                   </div>
-
                 </div>
-
+                
                 {/* DUAL LANGUAGE REVIEW SUMMARY BOX */}
                 <div className="bg-gradient-to-br from-blue-50/90 via-slate-50 to-indigo-50/60 dark:from-slate-800 dark:via-slate-850 dark:to-blue-950/40 rounded-2xl p-4 sm:p-5 border border-blue-200/80 dark:border-blue-900/60 space-y-3 shadow-2xs">
                   <div className="flex flex-wrap items-center justify-between gap-3">

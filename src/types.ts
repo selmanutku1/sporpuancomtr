@@ -9,6 +9,7 @@ export interface UserProfile {
   organizationName?: string;
   title?: string;
   createdAt: string;
+  requiresPasswordChange?: boolean;
 }
 
 export type SportsCategory = 
@@ -69,6 +70,7 @@ export interface CorporateApplication {
   adminNotes?: string;
   publishedFacilityId?: string;
   createdAt: string;
+  requiresPasswordChange?: boolean;
   status: 'pending' | 'approved' | 'rejected' | 'suspended';
 }
 

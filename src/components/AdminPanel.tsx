@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar';
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { UserProfile, SportsEvent, UserRole, Review, CorporateApplication, SportsCategory } from '../types';
@@ -1837,7 +1838,7 @@ ${fullUrl}`;
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       <div className="flex items-center gap-2">
-                        <img referrerPolicy="no-referrer" src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={rev.userName} className="w-6 h-6 rounded-full object-cover" />
+                        <Avatar src={rev.userAvatar} name={rev.userName} className="w-6 h-6 rounded-full object-cover" />
                         <span className="font-medium text-xs">{rev.userName}</span>
                       </div>
                     </td>

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+
+const content = `import React, { useState } from 'react';
 
 interface HoverRatingBarProps {
   value: number;
   onChange: (val: number) => void;
-  onHoverChange?: (val: number | null) => void;
   max?: number;
 }
 
@@ -16,15 +17,8 @@ const getEmoji = (val: number) => {
   return '🤩';
 };
 
-export const HoverRatingBar: React.FC<HoverRatingBarProps> = ({ value, onChange, onHoverChange, max = 10 }) => {
-  const [hoverValue, setHoverValueState] = useState<number | null>(null);
-  
-  const setHoverValue = (val: number | null) => {
-    setHoverValueState(val);
-    if (onHoverChange) {
-      onHoverChange(val);
-    }
-  };
+export const HoverRatingBar: React.FC<HoverRatingBarProps> = ({ value, onChange, max = 10 }) => {
+  const [hoverValue, setHoverValue] = useState<number | null>(null);
 
   const arr = Array.from({ length: max }, (_, i) => i + 1);
   const currentVal = hoverValue !== null ? hoverValue : value;
@@ -32,7 +26,7 @@ export const HoverRatingBar: React.FC<HoverRatingBarProps> = ({ value, onChange,
   return (
     <div className="flex items-center gap-3 w-full mt-2">
       <div 
-        className="flex w-full gap-0 h-6 sm:h-5 overflow-hidden rounded-md sm:rounded-lg" 
+        className="flex w-full gap-1 sm:gap-1.5 h-6 sm:h-8" 
         onMouseLeave={() => setHoverValue(null)}
       >
         {arr.map((i) => {
@@ -44,13 +38,13 @@ export const HoverRatingBar: React.FC<HoverRatingBarProps> = ({ value, onChange,
           return (
             <div
               key={i}
-              className={`flex-1 cursor-pointer transition-all duration-150 relative group ${colorClass} hover:opacity-90`}
+              className={\`flex-1 rounded-md sm:rounded-lg cursor-pointer transition-all duration-150 relative group \${colorClass}\`}
               onMouseEnter={() => setHoverValue(i)}
               onClick={() => onChange(i)}
-              title={`${i} Puan`}
+              title={\`\${i} Puan\`}
             >
               {/* Tooltip on Hover */}
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50 flex items-center gap-1">
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-slate-800 dark:bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-10 flex items-center gap-1">
                 {i} / {max} <span className="text-xs">{getEmoji(i)}</span>
               </div>
             </div>
@@ -67,3 +61,7 @@ export const HoverRatingBar: React.FC<HoverRatingBarProps> = ({ value, onChange,
     </div>
   );
 };
+`;
+
+fs.writeFileSync('src/components/HoverRatingBar.tsx', content);
+console.log('HoverRatingBar.tsx Updated');

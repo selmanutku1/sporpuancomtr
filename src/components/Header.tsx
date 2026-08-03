@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -98,31 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* Desktop Center Space - Quick Category Shortcuts */}
-            <div className="hidden xl:flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/90 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-              {(['Tümü', 'Spor Tesisleri', 'Spor Salonları', 'Spor Okulları', 'Spor Etkinlikleri'] as SportsCategory[]).map((cat) => {
-                const isActive = selectedCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      const el = document.getElementById('events-section');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-2xs'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
-
+            
             {/* Desktop Right Actions Buttons */}
             <div className="hidden md:flex items-center gap-2">
               
@@ -147,11 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Auth User Profile Section */}
               {currentUser ? (
                 <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 pr-2">
-                  <img referrerPolicy="no-referrer"
-                    src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
-                    alt={currentUser.name}
-                    className="w-7 h-7 rounded-lg object-cover border border-slate-300 dark:border-slate-600 shrink-0"
-                  />
+                  <Avatar src={currentUser.avatar} name={currentUser.name} className="w-7 h-7 rounded-lg object-cover border border-slate-300 dark:border-slate-600 shrink-0" />
                   <div className="hidden lg:flex flex-col min-w-0">
                     <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 truncate leading-tight">
                       {currentUser.name}
@@ -226,20 +199,27 @@ export const Header: React.FC<HeaderProps> = ({
             {/* User Section */}
             <div>
               {currentUser ? (
-                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                      <img referrerPolicy="no-referrer" src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={currentUser.name} className="w-12 h-12 rounded-xl object-cover border-2 border-white dark:border-slate-700 shadow-sm" />
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white text-base">{currentUser.name}</p>
-                        <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{currentUser.role === 'organizer' ? 'Organizatör Kulüp' : currentUser.role === 'admin' ? 'Yönetici' : 'Sporsever'}</p>
+                 <div className="flex flex-col gap-3 bg-gradient-to-br from-blue-50/50 to-slate-50 dark:from-slate-800/80 dark:to-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar src={currentUser.avatar} name={currentUser.name} className="w-16 h-16 rounded-2xl object-cover border-[3px] border-white dark:border-slate-700 shadow-md" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-black text-slate-900 dark:text-white text-lg leading-tight mb-0.5">{currentUser.name}</p>
+                        <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider bg-blue-100/50 dark:bg-blue-900/30 inline-block px-2.5 py-1 rounded-lg">
+                          {currentUser.role === 'organizer' ? 'Organizatör' : currentUser.role === 'admin' ? 'Yönetici' : 'Sporsever'}
+                        </p>
                       </div>
                     </div>
+                    <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-700/50 my-1"></div>
                     <button
                       onClick={() => { onLogout(); setIsMobileMenuOpen(false); }}
-                      className="p-2 text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-500/20 transition"
+                      className="w-full flex items-center justify-center gap-2 py-3 text-rose-600 bg-rose-50 dark:bg-rose-500/10 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-500/20 transition font-bold text-sm"
                       aria-label="Çıkış Yap"
                     >
-                      <LogOut className="w-5 h-5" />
+                      <LogOut className="w-4.5 h-4.5" />
+                      Çıkış Yap
                     </button>
                  </div>
               ) : (

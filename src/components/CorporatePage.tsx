@@ -876,6 +876,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
                 <div className="w-16 h-16 bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
                   <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 </div>
+                
                 <div className="space-y-2 max-w-lg mx-auto">
                   <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                     Kurumsal Üyelik Girişi Gereklidir
