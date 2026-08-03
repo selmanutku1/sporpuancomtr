@@ -736,7 +736,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                             {rev.userPhotos && rev.userPhotos.map((photo, pIdx) => (
                               <img referrerPolicy="no-referrer"
                                 key={pIdx}
-                                src={photo}
+                                src={photo || undefined}
                                 alt="Kullanıcı Görseli"
                                 className="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs hover:scale-105 transition cursor-pointer"
                               />

@@ -723,7 +723,7 @@ export const CorporateInviteForm: React.FC<CorporateInviteFormProps> = ({ curren
                         }`}
                       >
                         <img referrerPolicy="no-referrer" 
-                          src={img.url} 
+                          src={img.url || undefined} 
                           alt={img.label} 
                           className="w-full h-24 object-cover group-hover:scale-105 transition duration-300"
                           onError={(e) => {

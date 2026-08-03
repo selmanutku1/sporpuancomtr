@@ -317,7 +317,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                     <div className="w-full space-y-3">
                       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group shadow-2xs">
                         <img referrerPolicy="no-referrer"
-                          src={image}
+                          src={image || undefined}
                           alt="Etkinlik Görseli Önizleme"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />

@@ -444,7 +444,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
                       >
                         <div className="flex items-center gap-2 overflow-hidden">
                           {file.type === 'image' ? (
-                            <img referrerPolicy="no-referrer" src={file.url} alt={file.name} className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+                            <img referrerPolicy="no-referrer" src={file.url || undefined} alt={file.name} className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
                           ) : (
                             <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                               <FileText className="w-4 h-4" />

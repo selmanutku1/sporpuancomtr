@@ -1478,7 +1478,7 @@ ${fullUrl}`;
                     <div key={item.id || idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         {item.image ? (
-                          <img referrerPolicy="no-referrer" src={item.image} alt="Tesis" className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0" />
+                          <img referrerPolicy="no-referrer" src={item.image || undefined} alt="Tesis" className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0" />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0 text-xs">
                             🏟️

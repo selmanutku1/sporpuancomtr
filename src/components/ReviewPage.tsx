@@ -983,7 +983,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                           >
                             <div className="flex items-center gap-2.5 overflow-hidden">
                               {file.type === 'image' ? (
-                                <img referrerPolicy="no-referrer" src={file.url} alt={file.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+                                <img referrerPolicy="no-referrer" src={file.url || undefined} alt={file.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
                               ) : (
                                 <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                                   <FileText className="w-5 h-5" />

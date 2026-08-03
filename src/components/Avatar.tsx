@@ -21,7 +21,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, alt, className, refer
 
   return (
     <img
-      src={imgSrc}
+      src={imgSrc || undefined}
       alt={alt || name}
       onError={handleError}
       className={className}

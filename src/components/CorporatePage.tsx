@@ -758,7 +758,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
               >
                 <div className="relative h-48 overflow-hidden">
                   <img referrerPolicy="no-referrer"
-                    src={item.image}
+                    src={item.image || undefined}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                   />
@@ -1199,7 +1199,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
                       <div className="w-full space-y-2">
                         <div className="relative w-full aspect-[16/9] max-h-48 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 group shadow-sm">
                           <img referrerPolicy="no-referrer"
-                            src={formData.imageUrl}
+                            src={formData.imageUrl || undefined}
                             alt="Önizleme"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />

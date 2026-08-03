@@ -1,0 +1,1 @@
+grep -rn "<img" src/
