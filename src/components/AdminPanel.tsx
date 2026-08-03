@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { UserProfile, SportsEvent, UserRole, Review, CorporateApplication, SportsCategory } from '../types';
 import { db } from '../lib/firebase';
+import * as XLSX from 'xlsx';
 import { INITIAL_CORPORATE_APPS } from '../data/mockEvents';
 import { detectCategory, getEventDetailUrl } from '../lib/categoryUtils';
 import { TURKEY_CITIES } from '../data/turkeyLocations';
@@ -42,7 +43,8 @@ import {
   Copy,
   Zap,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { calculateOverallScore, CATEGORY_CRITERIA_MAP, getCriterionScore } from '../lib/scoreUtils';
 
@@ -552,6 +554,42 @@ Sporpuan Yönetimi`;
     });
   };
 
+  
+  const handleExportEvents = () => {
+    const data = filteredEvents.map(ev => ({
+      'ID': ev.id,
+      'Tesis Adı': ev.title,
+      'Kategori': ev.category,
+      'Şehir': ev.city,
+      'İlçe': ev.district,
+      'Tesis Puanı (Rating)': ev.rating,
+      'Yorum Sayısı': ev.reviewCount,
+      'Adres': ev.location,
+      'Telefon': ev.phone || '',
+      'Durum': ev.isActive === false ? 'Pasif' : 'Aktif'
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Partnerler');
+    XLSX.writeFile(workbook, 'Partnerler.xlsx');
+  };
+
+  const handleExportReviews = () => {
+    const data = filteredReviews.map(rev => ({
+      'ID': rev.id,
+      'Tarih': formatAdminReviewDate(rev.date),
+      'Kullanıcı': rev.userName,
+      'Tesis Adı': rev.eventTitle,
+      'Puan': rev.rating || rev.overallScore,
+      'Yorum': rev.comment,
+      'Durum': rev.status === 'hidden' ? 'Gizli' : (rev.status === 'approved' ? 'Onaylı' : 'Bekliyor')
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Degerlendirmeler');
+    XLSX.writeFile(workbook, 'Degerlendirmeler.xlsx');
+  };
+
   const handleSyncFirebaseFacilitiesToSite = async () => {
     setSyncingFirebase(true);
     setSyncResultMsg(null);
@@ -591,7 +629,7 @@ Sporpuan Yönetimi`;
         }
 
         const image = data.image || null;
-        if (!image || image.includes('unsplash.com')) {
+        const detectedCategory = detectCategory(facilityName, "", address, data.category); let finalImage = image; if (!image) { const idHash = Array.from(docSnap.id).reduce((acc, char) => acc + char.charCodeAt(0), 0); if (detectedCategory === "Spor Salonları") { const images = ['https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=1470&auto=format&fit=crop']; finalImage = images[idHash % images.length]; } else if (detectedCategory === "Spor Okulları") { const images = ['https://images.unsplash.com/photo-1515523110800-9415d13b84a8?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1526676037777-05a232554f77?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1519315901367-f34f9274ceb3?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518659114757-ee3d43c8b417?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1601367123180-2a3b04c8be1e?q=80&w=1470&auto=format&fit=crop']; finalImage = images[idHash % images.length]; } else if (detectedCategory === "Spor Etkinlikleri") { const images = ['https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1459865264687-595d652de67e?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1502224562085-639556652f33?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=1470&auto=format&fit=crop']; finalImage = images[idHash % images.length]; } else { const images = ['https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1487461086616-24eb79848074?q=80&w=1470&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1470&auto=format&fit=crop']; finalImage = images[idHash % images.length]; } } if (false) {
           // Skip facilities with representative / unsplash images
           return;
         }
@@ -606,7 +644,7 @@ Sporpuan Yönetimi`;
           date: 'Tüm Yıl Açık',
           organizer: 'Doğrulanmış Spor Tesisi',
           organizerVerified: true,
-          image: image,
+          image: finalImage,
           description: `${facilityName} - ${address ? `Adres: ${address}. ` : ''}Sporpuan haritalar ve tesis rehberinde yer alan doğrulanmış tesis.`,
           overallScore: data.overallScore || 8.8,
           ratingBreakdown: data.ratingBreakdown || {
@@ -1439,7 +1477,7 @@ ${fullUrl}`;
                     <div key={item.id || idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         {item.image ? (
-                          <img src={item.image} alt="Tesis" className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0" />
+                          <img referrerPolicy="no-referrer" src={item.image} alt="Tesis" className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0" />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0 text-xs">
                             🏟️
@@ -1484,6 +1522,13 @@ ${fullUrl}`;
             </div>
 
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <button
+                onClick={handleExportEvents}
+                className="px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-2 transition whitespace-nowrap shadow-sm"
+              >
+                <Download className="w-4 h-4" />
+                Excel İndir
+              </button>
               <button 
                 onClick={handleSyncFirebaseFacilitiesToSite}
                 disabled={syncingFirebase}
@@ -1494,7 +1539,7 @@ ${fullUrl}`;
                 <span>{syncingFirebase ? 'Aktarılıyor...' : "Veritabanından Siteye Aktar"}</span>
               </button>
               <button 
-                onClick={() => onAddEvent({
+                onClick={() => onEditEvent({
                   id: Math.random().toString(36).substr(2, 9),
                   title: '',
                   slug: '',
@@ -1502,6 +1547,9 @@ ${fullUrl}`;
                   city: '',
                   venue: '',
                   date: '',
+                  time: '',
+                  ticketUrl: '',
+                  summary: '',
                   organizer: 'Doğrulanmış Spor Tesisi',
                   organizerVerified: true,
                   image: '',
@@ -1669,7 +1717,7 @@ ${fullUrl}`;
                         className="flex items-center gap-3 group/partner hover:text-blue-600 transition-colors"
                         title={`${ev.title} profil sayfasına git`}
                       >
-                        <img 
+                        <img referrerPolicy="no-referrer" 
                           src={ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'} 
                           alt={ev.title} 
                           className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0 group-hover/partner:scale-105 transition-transform" 
@@ -1742,6 +1790,13 @@ ${fullUrl}`;
             />
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportReviews}
+              className="px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-2 transition whitespace-nowrap shadow-sm"
+            >
+              <Download className="w-4 h-4" />
+              Excel İndir
+            </button>
             <select
               value={reviewFilter}
               onChange={(e) => setReviewFilter(e.target.value as any)}
@@ -1782,7 +1837,7 @@ ${fullUrl}`;
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       <div className="flex items-center gap-2">
-                        <img src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={rev.userName} className="w-6 h-6 rounded-full object-cover" />
+                        <img referrerPolicy="no-referrer" src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={rev.userName} className="w-6 h-6 rounded-full object-cover" />
                         <span className="font-medium text-xs">{rev.userName}</span>
                       </div>
                     </td>

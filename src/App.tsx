@@ -136,13 +136,13 @@ export default function App() {
     } else {
       initialList = INITIAL_EVENTS;
     }
-    // Filter out all facilities/events that have representative unsplash or missing images
-    return initialList.filter((ev) => ev.image && !ev.image.includes('unsplash.com'));
+    // Accept all images including fallbacks
+    return initialList;
   });
 
   // Save changes to localStorage
   const updateEventsState = (newEvents: SportsEvent[]) => {
-    const filtered = newEvents.filter((ev) => ev.image && !ev.image.includes('unsplash.com'));
+    const filtered = newEvents;
     setEvents(filtered);
     localStorage.setItem('sporpuan_events_v2', JSON.stringify(filtered));
   };
@@ -162,13 +162,53 @@ export default function App() {
               const data = docSnap.data();
               const image = data.image || null;
 
-              // Skip representative or missing images
-              if (!image || image.includes('unsplash.com')) {
-                return;
-              }
-
+              // Determine category early for image fallback
               const facilityName = data.name || data.title || 'Spor Tesisi';
               const address = data.address || data.formattedAddress || '';
+              const detectedCategory = detectCategory(facilityName, '', address, data.category);
+
+              // Replace broken Google Places images or missing images with category-specific placeholders
+              let finalImage = image;
+              if (!image) {
+                const idHash = Array.from(docSnap.id).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                if (detectedCategory === 'Spor Salonları') {
+                  const images = [
+                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=1470&auto=format&fit=crop'
+                  ];
+                  finalImage = images[idHash % images.length];
+                } else if (detectedCategory === 'Spor Okulları') {
+                  const images = [
+                    'https://images.unsplash.com/photo-1515523110800-9415d13b84a8?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1526676037777-05a232554f77?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1519315901367-f34f9274ceb3?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1518659114757-ee3d43c8b417?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1601367123180-2a3b04c8be1e?q=80&w=1470&auto=format&fit=crop'
+                  ];
+                  finalImage = images[idHash % images.length];
+                } else if (detectedCategory === 'Spor Etkinlikleri') {
+                  const images = [
+                    'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1459865264687-595d652de67e?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1502224562085-639556652f33?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=1470&auto=format&fit=crop'
+                  ];
+                  finalImage = images[idHash % images.length];
+                } else {
+                  const images = [
+                    'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1487461086616-24eb79848074?q=80&w=1470&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1470&auto=format&fit=crop'
+                  ];
+                  finalImage = images[idHash % images.length];
+                }
+              }
               
               let city = 'İstanbul';
               const knownCities = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana', 'Konya', 'Gaziantep', 'Kocaeli', 'Mersin', 'Eskişehir', 'Samsun', 'Trabzon', 'Kayseri'];
@@ -189,7 +229,7 @@ export default function App() {
                 date: 'Tüm Yıl Açık',
                 organizer: 'Doğrulanmış Spor Tesisi',
                 organizerVerified: true,
-                image: image,
+                image: finalImage,
                 description: `${facilityName} - ${address ? `Adres: ${address}. ` : ''}Sporpuan haritalar ve tesis rehberinde yer alan doğrulanmış tesis.`,
                 overallScore: data.overallScore || 8.8,
                 ratingBreakdown: data.ratingBreakdown || {
@@ -220,7 +260,7 @@ export default function App() {
               }
             });
 
-            const cleanUpdated = updated.filter((e) => e.image && !e.image.includes('unsplash.com'));
+            const cleanUpdated = updated;
             try {
               localStorage.setItem('sporpuan_events_v2', JSON.stringify(cleanUpdated));
             } catch (e) {
@@ -310,7 +350,10 @@ export default function App() {
   };
 
   const handleUpdateEvent = async (updatedEvent: SportsEvent) => {
-    const updatedList = events.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev));
+    const isNew = !events.some(ev => ev.id === updatedEvent.id);
+    const updatedList = isNew 
+      ? [updatedEvent, ...events] 
+      : events.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev));
     updateEventsState(updatedList);
 
     try {

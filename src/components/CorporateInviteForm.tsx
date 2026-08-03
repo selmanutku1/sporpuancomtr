@@ -722,7 +722,7 @@ export const CorporateInviteForm: React.FC<CorporateInviteFormProps> = ({ curren
                           isSelected ? 'border-blue-500 ring-2 ring-blue-500/50' : 'border-slate-800 hover:border-slate-600'
                         }`}
                       >
-                        <img 
+                        <img referrerPolicy="no-referrer" 
                           src={img.url} 
                           alt={img.label} 
                           className="w-full h-24 object-cover group-hover:scale-105 transition duration-300"

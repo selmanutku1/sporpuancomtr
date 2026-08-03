@@ -4,6 +4,7 @@ import { SportsEvent, RatingCriterion, Review, UserProfile, SportsCategory } fro
 import { TURKEY_CITIES } from '../data/turkeyLocations';
 import { calculateOverallScore, CATEGORY_CRITERIA_MAP, getScoreBadgeColor, getScoreLabel } from '../lib/scoreUtils';
 import { getEventDetailUrl } from '../lib/categoryUtils';
+import { HoverRatingBar } from './HoverRatingBar';
 import { 
   Star, 
   Search, 
@@ -74,15 +75,16 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
   const initialEventId = searchParams.get('id') || searchParams.get('event');
 
   // Step state: 1 = Facility Selection, 2 = Rate & Review, 3 = Success
-  const [step, setStep] = useState<1 | 2 | 3>(initialEventId ? 2 : 1);
+  
 
   // Selected Target Event
+    // Selected Target Event
   const [targetEventId, setTargetEventId] = useState<string>(
-    initialEventId || (events.length > 0 ? events[0].id : '')
+    initialEventId || ''
   );
 
   const targetEvent = useMemo(() => {
-    return events.find((e) => e.id === targetEventId) || events[0];
+    return events.find((e) => e.id === targetEventId) || null;
   }, [events, targetEventId]);
 
   // Search & Filter for Step 1
@@ -206,7 +208,6 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
       return;
     }
     setTargetEventId(evId);
-    setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -252,7 +253,6 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
       onSubmitReview(targetEvent.id, newReview);
       setSubmittedReview(newReview);
       setIsSubmitting(false);
-      setStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 800);
   };
@@ -271,47 +271,8 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
           </div>
         </div>
 
-        {/* STEP PROGRESS BAR */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
-          <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-            <div className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 transition ${
-              step === 1
-                ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                : step > 1
-                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'
-            }`}>
-              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-black">1</span>
-              <span className="hidden sm:inline">1. Tesis / Okul Seçimi</span>
-              <span className="sm:hidden">1. Seçim</span>
-            </div>
-
-            <div className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 transition ${
-              step === 2
-                ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                : step > 2
-                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'
-            }`}>
-              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-black">2</span>
-              <span className="hidden sm:inline">2. Puanlama & Yorum</span>
-              <span className="sm:hidden">2. Yorum</span>
-            </div>
-
-            <div className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 transition ${
-              step === 3
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'
-            }`}>
-              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-black">3</span>
-              <span className="hidden sm:inline">3. Tamamlandı</span>
-              <span className="sm:hidden">3. Sonuç</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ================= STEP 1: VENUE SEARCH & SELECTION ================= */}
-        {step === 1 && (
+        {/* ================= VENUE SEARCH & SELECTION ================= */}
+        {!submittedReview && !targetEvent && (
           <div className="space-y-10 animate-fade-in">
             
             {/* VİSUALIZED SEARCH BAR CONTAINER */}
@@ -449,7 +410,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                         onClick={() => handleSelectFacility(ev.id)}
                         className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs hover:border-blue-500 hover:shadow-md transition cursor-pointer group flex items-start gap-4"
                       >
-                        <img
+                        <img referrerPolicy="no-referrer"
                           src={ev.imageUrl || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}
                           alt={ev.title}
                           className="w-24 h-24 rounded-xl object-cover shrink-0 group-hover:scale-105 transition duration-300 border border-slate-100 dark:border-slate-800"
@@ -515,7 +476,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                       onClick={() => handleSelectFacility(ev.id)}
                       className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 shadow-2xs hover:border-blue-500 hover:shadow-md transition cursor-pointer group flex items-center gap-3"
                     >
-                      <img
+                      <img referrerPolicy="no-referrer"
                         src={ev.imageUrl || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}
                         alt={ev.title}
                         className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 dark:border-slate-800"
@@ -719,15 +680,15 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
           </div>
         )}
 
-        {/* ================= STEP 2: RATING & REVIEW FORM ================= */}
-        {step === 2 && targetEvent && (
+        {/* ================= RATING & REVIEW FORM ================= */}
+        {!submittedReview && targetEvent && (
           <div className="space-y-8 animate-fade-in">
             
             {/* Selected Facility Card Banner */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-md flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4 w-full sm:w-auto">
-                <img
-                  src={targetEvent.imageUrl || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}
+                <img referrerPolicy="no-referrer"
+                  src={targetEvent.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}
                   alt={targetEvent.title}
                   className="w-20 h-20 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                   onError={(e) => {
@@ -756,7 +717,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
               {!initialEventId && (
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setTargetEventId('')}
                   className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition shrink-0"
                 >
                   Farklı Tesis Seç
@@ -904,14 +865,9 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                           </span>
                         </div>
 
-                        <input
-                          type="range"
-                          min="1"
-                          max="10"
-                          step="1"
-                          value={val}
-                          onChange={(e) => setScores({ ...scores, [criterion.key]: parseInt(e.target.value) })}
-                          className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        <HoverRatingBar 
+                          value={val} 
+                          onChange={(newVal) => setScores({ ...scores, [criterion.key]: newVal })} 
                         />
                       </div>
                     );
@@ -1091,7 +1047,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
                           >
                             <div className="flex items-center gap-2.5 overflow-hidden">
                               {file.type === 'image' ? (
-                                <img src={file.url} alt={file.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+                                <img referrerPolicy="no-referrer" src={file.url} alt={file.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
                               ) : (
                                 <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                                   <FileText className="w-5 h-5" />
@@ -1167,8 +1123,8 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
           </div>
         )}
 
-        {/* ================= STEP 3: SUCCESS CONFIRMATION ================= */}
-        {step === 3 && submittedReview && targetEvent && (
+        {/* ================= SUCCESS CONFIRMATION ================= */}
+        {submittedReview && targetEvent && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-500/40 p-8 sm:p-12 shadow-2xl text-center space-y-6 animate-fade-in">
             <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="w-10 h-10" />
@@ -1218,10 +1174,8 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
               </button>
               <button
                 onClick={() => {
-                  setStep(1);
-                  setComment('');
-                  setSelectedPros([]);
-                  setSelectedCons([]);
+                  setTargetEventId('');
+                  setSubmittedReview(null);
                 }}
                 className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-md"
               >

@@ -158,7 +158,7 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
              <div className="relative z-10 w-full h-[360px] sm:h-[480px] grid grid-cols-2 grid-rows-2 gap-3 sm:gap-4">
                {/* Large left image (Sports event) */}
                <div className="col-span-1 row-span-2 rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group">
-                 <img 
+                 <img referrerPolicy="no-referrer" 
                    src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=800&auto=format&fit=crop" 
                    alt="Maraton" 
                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -166,7 +166,7 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
                </div>
                {/* Top right image (Swimming) */}
                <div className="col-span-1 row-span-1 rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group">
-                 <img 
+                 <img referrerPolicy="no-referrer" 
                    src="https://images.unsplash.com/photo-1560090995-01632a28895b?q=80&w=600&auto=format&fit=crop" 
                    alt="Yüzme Tesisi" 
                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -174,7 +174,7 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
                </div>
                {/* Bottom right image (Sports school) */}
                <div className="col-span-1 row-span-1 rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group">
-                 <img 
+                 <img referrerPolicy="no-referrer" 
                    src="https://images.unsplash.com/photo-1519861531473-9200262188bf?q=80&w=600&auto=format&fit=crop" 
                    alt="Spor Okulu" 
                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -269,7 +269,7 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         {rev.userAvatar ? (
-                          <img src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt="" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700" />
+                          <img referrerPolicy="no-referrer" src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt="" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700" />
                         ) : (
                           <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${avatarColor} flex items-center justify-center font-bold text-sm sm:text-base`}>
                             {rev.userName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()}

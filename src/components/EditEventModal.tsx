@@ -122,15 +122,15 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
 
     const updatedEvent: SportsEvent = {
       ...event,
-      title: title.trim(),
+      title: (title || '').trim(),
       category,
-      city: city.trim(),
-      venue: venue.trim(),
-      date: date.trim(),
-      time: time.trim(),
-      organizer: organizer.trim() || event.organizer,
-      summary: description.trim() || event.summary,
-      ticketUrl: ticketUrl.trim() || event.ticketUrl,
+      city: (city || '').trim(),
+      venue: (venue || '').trim(),
+      date: (date || '').trim(),
+      time: (time || '').trim(),
+      organizer: (organizer || '').trim() || event.organizer,
+      summary: (description || '').trim() || event.summary,
+      ticketUrl: (ticketUrl || '').trim() || event.ticketUrl,
       image,
       isActive,
     };
@@ -313,7 +313,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                   ) : (
                     <div className="w-full space-y-3">
                       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group shadow-2xs">
-                        <img
+                        <img referrerPolicy="no-referrer"
                           src={image}
                           alt="Etkinlik Görseli Önizleme"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Auth User Profile Section */}
               {currentUser ? (
                 <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 pr-2">
-                  <img
+                  <img referrerPolicy="no-referrer"
                     src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
                     alt={currentUser.name}
                     className="w-7 h-7 rounded-lg object-cover border border-slate-300 dark:border-slate-600 shrink-0"
@@ -228,7 +228,7 @@ export const Header: React.FC<HeaderProps> = ({
               {currentUser ? (
                  <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-3">
-                      <img src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={currentUser.name} className="w-12 h-12 rounded-xl object-cover border-2 border-white dark:border-slate-700 shadow-sm" />
+                      <img referrerPolicy="no-referrer" src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'} alt={currentUser.name} className="w-12 h-12 rounded-xl object-cover border-2 border-white dark:border-slate-700 shadow-sm" />
                       <div>
                         <p className="font-bold text-slate-900 dark:text-white text-base">{currentUser.name}</p>
                         <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{currentUser.role === 'organizer' ? 'Organizatör Kulüp' : currentUser.role === 'admin' ? 'Yönetici' : 'Sporsever'}</p>

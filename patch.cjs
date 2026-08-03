@@ -1,8 +1,18 @@
 const fs = require('fs');
-let code = fs.readFileSync('server.ts', 'utf8');
 
-code = code.replace(/const facilities = \[\];\s*for \(const p of rawPlaces\) \{([\s\S]*?)facilities\.push\(\{([\s\S]*?)\}\);\s*\}/, (match, body, pushBody) => {
-    return `const facilities = await Promise.all(rawPlaces.map(async (p) => {${body}return {${pushBody}};\n      }));`;
-});
+function patchFile(filePath) {
+  let content = fs.readFileSync(filePath, 'utf8');
+  
+  // Replace `if (!image || image.includes('places.googleapis.com')) {` with `if (!image) {`
+  content = content.replace(
+    /if \(\!image \|\| image\.includes\(['"]places\.googleapis\.com['"]\)\) \{/g,
+    'if (!image) {'
+  );
+  
+  fs.writeFileSync(filePath, content);
+}
 
-fs.writeFileSync('server.ts', code);
+patchFile('src/App.tsx');
+patchFile('src/components/AdminPanel.tsx');
+
+console.log('Patched places.googleapis.com image overrides.');

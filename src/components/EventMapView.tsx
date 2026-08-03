@@ -306,7 +306,7 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
       // Create rich HTML popup content
       const popupHtml = `
         <div style="font-family: sans-serif; color: #0f172a; width: 180px; text-align: left;">
-          <img src="${ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;" />
+          <img referrerPolicy="no-referrer" src="${ev.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=200&auto=format&fit=crop'}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;" />
           <div style="display: flex; items-center; justify-content: space-between; gap: 4px; margin-bottom: 4px;">
             <span style="background-color: ${color}; color: #020617; font-size: 9px; font-weight: 800; padding: 2px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">
               ${ev.category}
@@ -694,7 +694,7 @@ export const EventMapView: React.FC<EventMapViewProps> = ({
                           : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60'
                       }`}
                     >
-                      <img
+                      <img referrerPolicy="no-referrer"
                         src={ev.image || ''}
                         alt={ev.title}
                         className="w-16 h-16 rounded-xl object-cover shrink-0"

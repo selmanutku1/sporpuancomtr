@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { SportsEvent, RatingCriterion, Review, UserProfile, SportsCategory } from '../types';
 import { calculateOverallScore, CATEGORY_CRITERIA_MAP, getScoreBadgeColor, getScoreLabel } from '../lib/scoreUtils';
 import { X, Star, CheckCircle2, Trophy, Upload, ShieldCheck, AlertCircle, User, LogIn, UploadCloud, FileText, Trash2, Paperclip, BadgeCheck } from 'lucide-react';
+import { HoverRatingBar } from './HoverRatingBar';
 
 const PREDEFINED_PROS = [
   "Harika Atmosfer", "Hızlı Giriş", "Temiz Tesis", "Uygun Fiyat", "Kolay Ulaşım", "İlgili Personel", "Güvenli Ortam", "Aileye Uygun"
@@ -230,7 +231,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
             {currentUser ? (
               <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 rounded-xl p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <img
+                  <img referrerPolicy="no-referrer"
                     src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
                     alt={currentUser.name}
                     className="w-8 h-8 rounded-full object-cover border border-blue-300 shrink-0"
@@ -322,14 +323,9 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
                       </span>
                     </div>
 
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      value={val}
-                      onChange={(e) => handleCriterionChange(crit.key, parseInt(e.target.value))}
-                      className="w-full accent-blue-600 dark:accent-blue-400 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
+                    <HoverRatingBar 
+                      value={val} 
+                      onChange={(newVal) => handleCriterionChange(crit.key, newVal)} 
                     />
 
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{crit.desc}</p>
@@ -434,7 +430,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
                       >
                         <div className="flex items-center gap-2 overflow-hidden">
                           {file.type === 'image' ? (
-                            <img src={file.url} alt={file.name} className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+                            <img referrerPolicy="no-referrer" src={file.url} alt={file.name} className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
                           ) : (
                             <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                               <FileText className="w-4 h-4" />

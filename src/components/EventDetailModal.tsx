@@ -252,8 +252,8 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
       <div className="bg-white dark:bg-slate-900 w-full max-w-6xl mx-auto min-h-[calc(100vh-100px)] rounded-none sm:rounded-3xl shadow-md border border-slate-200 dark:border-slate-800 flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden mt-0 sm:mt-6 transition-colors duration-200">
         
         {/* Header Image Banner */}
-        <div className="relative h-64 sm:h-72 w-full shrink-0 bg-slate-100 dark:bg-slate-800">
-          <img
+        <div className="relative h-48 sm:h-64 w-full shrink-0 bg-slate-100 dark:bg-slate-800">
+          <img referrerPolicy="no-referrer"
             src={event.image || 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=800&auto=format&fit=crop'}
             alt={event.title}
             className="w-full h-full object-cover"
@@ -261,86 +261,74 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=1200&auto=format&fit=crop';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-slate-950/20" />
 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2.5 bg-slate-900/80 hover:bg-slate-900 text-slate-200 hover:text-white rounded-full backdrop-blur-md transition border border-slate-700 z-10 shadow-md cursor-pointer"
+            className="absolute top-4 right-4 p-2.5 bg-white/90 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-full backdrop-blur-md transition shadow-md cursor-pointer z-10"
             aria-label="Kapat"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Top Badges */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-            <span className="bg-blue-600 dark:bg-blue-500 text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+          <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+            <span className="bg-blue-600 dark:bg-blue-500 text-white font-black text-xs px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-md">
               {event.category}
             </span>
           </div>
+        </div>
 
-          {/* Banner Details Overlay */}
-          <div className="absolute bottom-4 left-4 right-4 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs text-slate-200 font-medium mb-1">
-                <span>Organizatör: <strong className="text-white">{event.organizer?.toLowerCase().includes('google maps') ? 'Doğrulanmış Spor Tesisi' : event.organizer}</strong></span>
+        {/* Header Info Details (Moved outside the image for better mobile display) */}
+        <div className="px-4 sm:px-6 pt-5 pb-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+            <div className="w-full">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium mb-1.5">
+                <span>Organizatör: <strong className="text-slate-800 dark:text-slate-200">{event.organizer?.toLowerCase().includes('google maps') ? 'Doğrulanmış Spor Tesisi' : event.organizer}</strong></span>
                 {event.organizerVerified && (
-                  <span className="flex items-center gap-0.5 text-blue-300 text-[11px] bg-blue-500/20 px-2 py-0.5 rounded border border-blue-400/30 font-bold">
+                  <span className="flex items-center gap-0.5 text-blue-700 dark:text-blue-400 text-[11px] bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-400/30 font-bold">
                     <BadgeCheck className="w-3.5 h-3.5" /> Onaylı
                   </span>
                 )}
               </div>
-              <h2 className="text-xl sm:text-3xl font-black text-white leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight">
                 {event.title}
               </h2>
-              <div className="flex flex-col gap-1 mt-1 sm:mt-2">
-                <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-200">
-                  <div className="flex items-center gap-1 sm:gap-1.5">
-                    <MapPin className="w-4 h-4 text-blue-400" />
-                    <span>{event.venue ? `${event.venue}, ${event.city}` : event.city}</span>
-                  </div>
+              <div className="flex flex-col gap-2 mt-2 sm:mt-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                   <button 
                     type="button"
-                    onClick={() => {
-                      navigate(`/harita?id=${event.id}`);
-                    }}
-                    className="text-xs text-blue-300 hover:text-blue-100 flex items-center gap-1.5 bg-slate-900/80 hover:bg-slate-900 px-3 py-1 rounded-full border border-slate-700/80 cursor-pointer transition active:scale-95 font-medium shadow-2xs"
+                    onClick={() => navigate(`/harita?id=${event.id}`)}
+                    className="text-xs text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-1.5 bg-blue-50 dark:bg-slate-800/80 hover:bg-blue-100 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-slate-700 cursor-pointer transition active:scale-95 font-bold shadow-2xs"
                   >
-                    <Map className="w-3.5 h-3.5 text-blue-400" />
+                    <Map className="w-3.5 h-3.5" />
                     <span>Haritada Gör</span>
                   </button>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-200">
-                  <MessageSquare className="w-4 h-4 text-blue-400" />
-                  <div className="flex items-baseline gap-1.5">
-                    <strong className="text-white text-base">{event.overallScore.toFixed(1)}</strong>
-                    <span className="font-medium text-slate-200">{scoreLabel}</span>
-                    <span className="text-slate-400 text-xs ml-1">{totalReviewCount} yorum</span>
-                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 w-full sm:w-auto">
               {onOpenEditModal && onUpdateEvent && (
                 <button
                   onClick={() => onUpdateEvent({ ...event, isActive: event.isActive === false ? true : false })}
-                  className={`px-3 py-2.5 font-bold text-xs rounded-xl border transition flex items-center gap-1.5 ${
+                  className={`flex-1 sm:flex-none px-3 py-2.5 font-bold text-xs rounded-xl border transition flex items-center justify-center gap-1.5 ${
                     event.isActive !== false
-                      ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
-                      : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40'
+                      ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30'
+                      : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30'
                   }`}
                   title={event.isActive !== false ? "Yayından Kaldır (Gizle)" : "Yayına Al (Göster)"}
                 >
                   {event.isActive !== false ? (
                     <>
-                      <EyeOff className="w-4 h-4 text-amber-400" />
-                      <span className="hidden sm:inline">Yayından Kaldır</span>
+                      <EyeOff className="w-4 h-4" />
+                      <span>Gizle</span>
                     </>
                   ) : (
                     <>
-                      <Eye className="w-4 h-4 text-emerald-400" />
-                      <span className="hidden sm:inline">Yayına Al</span>
+                      <Eye className="w-4 h-4" />
+                      <span>Yayınla</span>
                     </>
                   )}
                 </button>
@@ -348,18 +336,18 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               {onOpenEditModal && (
                 <button
                   onClick={() => onOpenEditModal(event)}
-                  className="px-3 py-2.5 bg-slate-900/80 hover:bg-slate-900 text-white font-bold text-xs rounded-xl border border-slate-700 transition flex items-center gap-1.5"
+                  className="flex-1 sm:flex-none px-3 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition flex items-center justify-center gap-1.5"
                   title="Düzenle"
                 >
-                  <Edit3 className="w-4 h-4 text-blue-400" />
-                  <span className="hidden sm:inline">Düzenle</span>
+                  <Edit3 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                  <span>Düzenle</span>
                 </button>
               )}
               <button
                 onClick={() => onOpenRateForm(event)}
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg flex items-center gap-2 transition active:scale-95"
+                className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition active:scale-95"
               >
-                <Star className="w-4 h-4 fill-white text-white" />
+                <MessageSquare className="w-4 h-4 fill-white text-white" />
                 <span>Puan Ver & Yorum Yap</span>
               </button>
             </div>
@@ -557,10 +545,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 </div>
 
                 {/* BOTTOM ACTION BUTTONS */}
-                <div className="flex items-center gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 w-full sm:w-auto">
                   <button
                     onClick={() => onOpenRateForm(event)}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-full shadow-md shadow-blue-600/20 transition flex items-center gap-2 active:scale-95 cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-full shadow-md shadow-blue-600/20 transition flex justify-center items-center gap-2 active:scale-95 cursor-pointer"
                   >
                     <MessageSquare className="w-4 h-4 fill-white text-white" />
                     <span>Yorum Yaz</span>
@@ -568,7 +556,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                   <button
                     onClick={() => setActiveTab('reviews')}
-                    className="px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-full border border-slate-300 dark:border-slate-700 transition shadow-2xs active:scale-95 cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-full border border-slate-300 dark:border-slate-700 transition shadow-2xs active:scale-95 cursor-pointer text-center flex justify-center items-center"
                   >
                     <span>Tüm Yorumları Göster</span>
                   </button>
@@ -577,7 +565,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               </div>
 
               {/* Info Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="bg-slate-50 dark:bg-slate-850 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
                   <div>
@@ -591,7 +579,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
                   <div>
                     <span className="text-slate-500 dark:text-slate-400 block font-medium">Konum / Tesis</span>
-                    <span className="font-bold text-slate-900 dark:text-slate-100 truncate block max-w-[180px]">{event.venue}</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100 truncate block max-w-full sm:max-w-[180px]">{event.venue}</span>
                   </div>
                 </div>
               </div>
@@ -651,7 +639,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold overflow-hidden border border-blue-200 dark:border-blue-800">
                             {rev.userAvatar ? (
-                              <img
+                              <img referrerPolicy="no-referrer"
                                 src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
                                 alt={rev.userName}
                                 className="w-full h-full object-cover"
@@ -703,7 +691,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                         <div className="pt-2 space-y-2">
                           <div className="flex flex-wrap gap-2 items-center">
                             {rev.userPhotos && rev.userPhotos.map((photo, pIdx) => (
-                              <img
+                              <img referrerPolicy="no-referrer"
                                 key={pIdx}
                                 src={photo}
                                 alt="Kullanıcı Görseli"

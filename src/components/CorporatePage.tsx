@@ -420,7 +420,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
             {/* Right Hero Image Mockup */}
             <div className="lg:col-span-5 relative">
               <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl group">
-                <img
+                <img referrerPolicy="no-referrer"
                   src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop"
                   alt="Kurumsal Spor Tesisi"
                   className="w-full h-[380px] object-cover group-hover:scale-105 transition duration-500"
@@ -757,7 +757,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
                 className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs hover:shadow-xl transition-all group flex flex-col"
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img
+                  <img referrerPolicy="no-referrer"
                     src={item.image}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
@@ -1197,7 +1197,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
                     ) : formData.imageUrl && !formData.imageUrl.startsWith('https://images.unsplash.com') ? (
                       <div className="w-full space-y-2">
                         <div className="relative w-full aspect-[16/9] max-h-48 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 group shadow-sm">
-                          <img
+                          <img referrerPolicy="no-referrer"
                             src={formData.imageUrl}
                             alt="Önizleme"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

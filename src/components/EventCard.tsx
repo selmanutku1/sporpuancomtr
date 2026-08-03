@@ -33,7 +33,7 @@ export const EventCard: React.FC<EventCardProps> = ({
     >
       {/* Top Image Banner */}
       <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-        <img
+        <img referrerPolicy="no-referrer"
           src={event.image || ''}
           alt={event.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -55,13 +55,6 @@ export const EventCard: React.FC<EventCardProps> = ({
             <span className="text-[10px] font-normal opacity-90">/10</span>
           </div>
         </div>
-
-
-        {/* City & Venue Overlay Bottom */}
-        <div className="absolute bottom-3 right-3 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-700 shadow-2xs">
-          <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-          <span className="truncate max-w-[140px]">{event.city}</span>
-        </div>
       </div>
 
       {/* Card Content Body */}
@@ -70,13 +63,12 @@ export const EventCard: React.FC<EventCardProps> = ({
         <div>
           {/* Organizer Info & Source Provider */}
           <div className="flex items-center justify-between gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <span>Organizatör:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[200px]">
                 {event.organizer?.toLowerCase().includes('google maps') ? 'Doğrulanmış Spor Tesisi' : event.organizer}
               </span>
               {event.organizerVerified && (
-                <BadgeCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 inline" title="Onaylı Tesis" />
+                <BadgeCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" title="Onaylı Tesis" />
               )}
             </div>
           </div>
@@ -99,23 +91,11 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
         </div>
 
-        {/* Dynamic Criteria Preview Bar */}
-        <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-2 text-[11px]">
-          {(CATEGORY_CRITERIA_MAP[event.category] || []).slice(0, 3).map(crit => (
-            <div key={crit.key} className="flex justify-between text-slate-700 dark:text-slate-300 font-medium">
-              <span>{crit.label}:</span>
-              <span className="font-bold text-blue-600 dark:text-blue-400">
-                {getCriterionScore(event.ratingBreakdown, crit.key, event.overallScore).toFixed(1)}/10
-              </span>
-            </div>
-          ))}
-        </div>
-
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5">
           {event.tags
             .filter(tag => !tag.toLowerCase().includes('google maps') && !tag.toLowerCase().includes('firebase') && !tag.toLowerCase().includes('firestore'))
-            .slice(0, 3)
+            .slice(0, 2)
             .map((tag) => (
             <span
               key={tag}
