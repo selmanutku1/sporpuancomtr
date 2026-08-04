@@ -39,8 +39,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         const existingData = userSnap.data() as UserProfile;
         return existingData;
       }
-    } catch (e) {
-      console.error("Error saving user to Firestore", e);
+    } catch (e: any) {
+      if (e.message?.includes('offline') || e.code === 'unavailable') {
+        console.warn("Firestore offline - user save queued or deferred");
+      } else {
+        console.error("Error saving user to Firestore", e);
+      }
     }
     return userProfile;
   };

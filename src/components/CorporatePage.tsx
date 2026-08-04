@@ -872,7 +872,7 @@ export const CorporatePage: React.FC<CorporatePageProps> = ({
             </div>
 
             {!currentUser ? (
-              <div className="p-8 sm:p-14 text-center space-y-6">
+              <div id="login-required" className="p-8 sm:p-14 text-center space-y-6">
                 <div className="w-16 h-16 bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
                   <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 </div>

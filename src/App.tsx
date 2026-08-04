@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { INITIAL_EVENTS } from './data/mockEvents';
 import { SportsEvent, SportsCategory, Review, UserProfile, UserRole } from './types';
 import { db } from './lib/firebase';
@@ -27,6 +27,10 @@ import { SporpuanlilarNeDemis } from './components/SporpuanlilarNeDemis';
 import { ShareExperienceCTA } from './components/ShareExperienceCTA';
 import { Footer } from './components/Footer';
 import { SEOHead } from './components/SEOHead';
+import { SupportButton } from './components/SupportButton';
+import { CertifiedPage } from './pages/CertifiedPage';
+import CertifiedAuthPrompt from './components/CertifiedAuthPrompt';
+import { ContactPage } from './pages/ContactPage';
 import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map as MapIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORY_CRITERIA_MAP, calculateOverallScore } from './lib/scoreUtils';
 import { detectCategory, getEventDetailUrl, getSlugOrId } from './lib/categoryUtils';
@@ -636,7 +640,7 @@ export default function App() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 w-full bg-slate-50 dark:bg-slate-950 relative pt-2 transition-colors duration-200">
+      <main className="flex-1 w-full bg-slate-50 dark:bg-slate-950 relative pt-2 transition-colors duration-200 px-2 sm:px-4">
         <Routes>
           {/* Category & Detail Routes (Supports Tesis, Salon, Okul, Etkinlik & Slugs) */}
           <Route path="/tesis/:id" element={detailElement} />
@@ -675,17 +679,21 @@ export default function App() {
           } />
           
           <Route path="/admin" element={
-            <>
-              <SEOHead title="Yönetici Paneli" description="SporPuan tesis, onay ve içerik yönetim paneli." />
-              <AdminPanel 
-                events={events}
-                onDeleteEvent={handleDeleteEvent}
-                onEditEvent={setEditingEvent}
-                onUpdateEvent={handleUpdateEvent}
-                onAddEvent={handleAddNewEvent}
-                onUpdateEventsBatch={handleUpdateEventsBatch}
-              />
-            </>
+            currentUser?.role === 'admin' ? (
+              <>
+                <SEOHead title="Yönetici Paneli" description="SporPuan tesis, onay ve içerik yönetim paneli." />
+                <AdminPanel 
+                  events={events}
+                  onDeleteEvent={handleDeleteEvent}
+                  onEditEvent={setEditingEvent}
+                  onUpdateEvent={handleUpdateEvent}
+                  onAddEvent={handleAddNewEvent}
+                  onUpdateEventsBatch={handleUpdateEventsBatch}
+                />
+              </>
+            ) : (
+              <Navigate to="/" replace />
+            )
           } />
 
           <Route path="/kurumsal" element={
@@ -742,6 +750,12 @@ export default function App() {
           } />
           <Route path="/tesis-oner" element={
             <SuggestFacilityPage />
+          } />
+          <Route path="/iletisim" element={
+            <ContactPage />
+          } />
+          <Route path="/certified" element={
+            <CertifiedAuthPrompt />
           } />
           <Route path="/harita" element={
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col min-h-[calc(100vh-100px)]">
@@ -979,6 +993,7 @@ export default function App() {
 
       {/* Footer */}
       <Footer onOpenSubmitEvent={() => setIsSubmitEventOpen(true)} />
+      <SupportButton />
 
       {/* MODALS */}
       {/* 2. Rate / Add Review Modal */}

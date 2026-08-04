@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, ShieldCheck, Heart, Mail, Instagram, Check, Building2 } from 'lucide-react';
+import { Star, ShieldCheck, Heart, Mail, Instagram, Check, Building2, Trophy } from 'lucide-react';
 import { LegalModal, LegalDocType } from './LegalModal';
 
 interface FooterProps {
@@ -91,6 +91,19 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSubmitEvent }) => {
                   type="button"
                   onClick={() => {
                     window.scrollTo(0, 0);
+                    navigate('/certified');
+                  }}
+                  className="hover:text-blue-400 transition-colors text-left flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Sporpuan Certified</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo(0, 0);
                     navigate('/kurumsal');
                   }}
                   className="hover:text-blue-400 transition-colors text-left font-semibold text-slate-300 flex items-center gap-1.5"
@@ -98,6 +111,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSubmitEvent }) => {
                   <Building2 className="w-3.5 h-3.5 text-slate-400" />
                   <span>Kurumsal Üyelik Bilgi Sayfası</span>
                 </button>
+              </li>
+              <li>
+                <div className="flex items-center gap-1.5 text-slate-500 cursor-not-allowed">
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>Sporpuan Ödüller</span>
+                  <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">Yakında</span>
+                </div>
               </li>
               <li><a href="mailto:iletisim@sporpuan.com" className="hover:text-blue-400 transition-colors">İletişim</a></li>
               <li>
