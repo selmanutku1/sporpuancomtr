@@ -1,3 +1,12 @@
+export interface FacilitySuggestion {
+  id: string;
+  facilityName: string;
+  category: string;
+  details: string;
+  createdAt: string;
+  status: 'pending' | 'reviewed';
+}
+
 export type UserRole = 'user' | 'organizer' | 'admin';
 
 export interface UserProfile {
@@ -10,6 +19,7 @@ export interface UserProfile {
   title?: string;
   createdAt: string;
   requiresPasswordChange?: boolean;
+  favorites?: string[];
 }
 
 export type SportsCategory = 
@@ -71,6 +81,7 @@ export interface CorporateApplication {
   publishedFacilityId?: string;
   createdAt: string;
   requiresPasswordChange?: boolean;
+  favorites?: string[];
   status: 'pending' | 'approved' | 'rejected' | 'suspended';
 }
 

@@ -1,14 +1,37 @@
 import express from 'express';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, limit } from 'firebase/firestore';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import twilio from 'twilio';
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyALpsVjRPYQQHwV3rU--B2kmjtKBXJgkCI",
+  authDomain: "gen-lang-client-0185853879.firebaseapp.com",
+  projectId: "gen-lang-client-0185853879",
+  storageBucket: "gen-lang-client-0185853879.firebasestorage.app",
+  messagingSenderId: "794151489682",
+  appId: "1:794151489682:web:77fb42aff2b3f8bf16564b"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp, "ai-studio-sporpuan-584c3fa0-145e-4898-bad3-ca77311c7f56");
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
+  let vite;
+  if (process.env.NODE_ENV !== 'production') {
+    vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'custom', // custom so it doesn't intercept HTML if we do it ourselves, but wait, 'spa' is better? If 'custom', we must handle HTML. Let's use 'custom' so Vite doesn't serve index.html directly.
+    });
+    app.use(vite.middlewares);
+  }
+
 
   // Helper to initialize GoogleGenAI safely
   const getAIClient = () => {
@@ -628,7 +651,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   });
 
   // Technical SEO Route: sitemap.xml
-  app.get('/sitemap.xml', (req, res) => {
+  app.get('/sitemap.xml', async (req, res) => {
     const host = req.headers.host || 'sporpuan.com';
     const protocol = req.headers['x-forwarded-proto'] || 'https';
     const baseUrl = `${protocol}://${host}`;
@@ -642,20 +665,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       { loc: `${baseUrl}/puanla`, priority: '0.8', changefreq: 'weekly' }
     ];
 
-    const sampleSlugs = [
-      'macfit-kanyon',
-      'fenerbahce-sukru-saracoglu-stadyumu',
-      'galatasaray-nef-stadyumu',
-      'besiktas-vodafone-park',
-      'anadolu-efes-basketbol-okulu',
-      'ted-ankara-kolejliler-spor-salonu',
-      'bursa-ataturk-spor-kompleksi',
-      'izmir-karsiyaka-olimpik-yuzme-havuzu'
-    ];
-
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-`;
+    let xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
     for (const item of staticUrls) {
       xml += `  <url>
@@ -666,17 +676,29 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   </url>\n`;
     }
 
-    for (const slug of sampleSlugs) {
-      xml += `  <url>
-    <loc>${baseUrl}/tesis/${slug}</loc>
+    try {
+      const querySnapshot = await getDocs(collection(db, "facilities"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const slug = data.slug || docSnap.id;
+        // determine base path based on category (tesis, salon, okul, etkinlik)
+        let prefix = 'tesis';
+        if (data.category === 'Spor Salonları') prefix = 'salon';
+        else if (data.category === 'Spor Okulları') prefix = 'okul';
+        else if (data.category === 'Spor Etkinlikleri') prefix = 'etkinlik';
+        
+        xml += `  <url>
+    <loc>${baseUrl}/${prefix}/${slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>\n`;
+      });
+    } catch (err) {
+      console.error('Error fetching facilities for sitemap:', err);
     }
 
     xml += `</urlset>`;
-
     res.setHeader('Content-Type', 'application/xml');
     res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.send(xml);
@@ -710,37 +732,80 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const host = req.headers.host || 'localhost:3000';
       const baseUrl = `${protocol}://${host}`;
 
-      if (process.env.NODE_ENV !== 'production') {
-        // In Dev mode, let Vite handle HTML but inject absolute URLs
-        next();
-      } else {
-        const indexPath = path.join(process.cwd(), 'dist', 'index.html');
+      
+        const isDev = process.env.NODE_ENV !== 'production';
+        const indexPath = path.join(process.cwd(), isDev ? 'index.html' : 'dist/index.html');
         try {
           const fs = await import('fs/promises');
           let html = await fs.readFile(indexPath, 'utf-8');
-          // Replace relative og:image and og:logo URLs with absolute URLs required by WhatsApp & Twitter scrapers
+
           html = html.replace(/content="\/og-image\.svg"/g, `content="${baseUrl}/og-image.svg"`);
           html = html.replace(/content="\/sporpuan-logo\.svg"/g, `content="${baseUrl}/sporpuan-logo.svg"`);
           html = html.replace(/href="\/favicon\.svg"/g, `href="${baseUrl}/favicon.svg"`);
+
+          // Match dynamic facility routes
+          const match = req.path.match(/^\/(tesis|salon|okul|etkinlik|detay|tesisler|salonlar|spor-okulu|spor-okullari|etkinlikler)\/([^\/]+)\/?$/);
+          if (match) {
+            const facilityId = match[2];
+            console.log("Matched route for facility: ", facilityId);
+            let facilityData = null;
+
+            const q = query(collection(db, "facilities"), where("slug", "==", facilityId), limit(1));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+              facilityData = querySnapshot.docs[0].data();
+            } else {
+              const docRef = doc(db, "facilities", facilityId);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                facilityData = docSnap.data();
+              }
+            }
+
+            console.log("Found facility: ", !!facilityData);
+            if (facilityData) {
+              const catName = facilityData.category || 'Spor Tesisi';
+              const scoreStr = facilityData.overallScore ? Number(facilityData.overallScore).toFixed(1) : '8.8';
+              const cityStr = facilityData.city ? `${facilityData.city}` : 'Türkiye';
+              const reviewCountStr = facilityData.reviewCount || (facilityData.reviews ? facilityData.reviews.length : 0);
+              
+              const metaTitle = `⭐ ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} Puanı & Yorumları (${scoreStr}/10) | ${catName} - SporPuan`;
+              const metaDescription = `${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} (${cityStr}) için sporseverler tarafından verilen ${scoreStr}/10 puanı, ${reviewCountStr} gerçek kullanıcı yorumu, hijyen, ekipman, eğitmen kadrosu ve lokasyon detaylı kriter incelemesi.`;
+              const metaKeywords = `${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)}, ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} yorumları, ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} puanı, ${cityStr} ${catName}, ${facilityData.venue || ''}, spor salonu tavsiyesi, sporpuan`;
+              const metaImage = facilityData.image || `${baseUrl}/og-image.png`;
+
+              html = html.replace(/<title>.*?<\/title>/i, `<title>${metaTitle}</title>`);
+              html = html.replace(/<meta name="title" content=".*?" \/>/i, `<meta name="title" content="${metaTitle}" />`);
+              html = html.replace(/<meta name="description" content=".*?" \/>/i, `<meta name="description" content="${metaDescription}" />`);
+              html = html.replace(/<meta name="keywords" content=".*?" \/>/i, `<meta name="keywords" content="${metaKeywords}" />`);
+              
+              html = html.replace(/<meta property="og:title" content=".*?" \/>/i, `<meta property="og:title" content="${metaTitle}" />`);
+              html = html.replace(/<meta property="og:description" content=".*?" \/>/i, `<meta property="og:description" content="${metaDescription}" />`);
+              html = html.replace(/<meta property="og:image" content=".*?" \/>/i, `<meta property="og:image" content="${metaImage}" />`);
+              html = html.replace(/<meta property="og:url" content=".*?" \/>/i, `<meta property="og:url" content="${baseUrl}${req.path}" />`);
+
+              html = html.replace(/<meta name="twitter:title" content=".*?" \/>/i, `<meta name="twitter:title" content="${metaTitle}" />`);
+              html = html.replace(/<meta name="twitter:description" content=".*?" \/>/i, `<meta name="twitter:description" content="${metaDescription}" />`);
+              html = html.replace(/<meta name="twitter:image" content=".*?" \/>/i, `<meta name="twitter:image" content="${metaImage}" />`);
+            }
+          }
+
+          if (isDev && vite) {
+            html = await vite.transformIndexHtml(req.originalUrl, html);
+          }
+
           res.setHeader('Content-Type', 'text/html');
           return res.send(html);
         } catch (e) {
           next();
         }
-      }
     } else {
       next();
     }
   });
 
-  // Vite veya Static sunum
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
+// Catch-all for SPA in production
+  if (process.env.NODE_ENV === 'production') {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (_req, res) => {

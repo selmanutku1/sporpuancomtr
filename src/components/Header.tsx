@@ -129,10 +129,14 @@ export const Header: React.FC<HeaderProps> = ({
                     <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 truncate leading-tight">
                       {currentUser.name}
                     </span>
-                    <span className="text-[9px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                      {currentUser.role === 'admin' ? 'Yönetici' : currentUser.role === 'organizer' ? 'Organizatör' : 'Sporsever'}
-                    </span>
+                    <button 
+                      onClick={() => navigate('/profil')}
+                      className="text-[9px] font-bold text-blue-700 dark:text-blue-400 hover:underline text-left"
+                    >
+                      Profilim
+                    </button>
                   </div>
+                  
                   {currentUser.role === 'admin' && (
                     <button
                       onClick={() => navigate('/admin')}
@@ -212,6 +216,15 @@ export const Header: React.FC<HeaderProps> = ({
                         </p>
                       </div>
                     </div>
+                    <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-700/50 my-1"></div>
+                    <button
+                      onClick={() => { navigate('/profil'); setIsMobileMenuOpen(false); }}
+                      className="w-full flex items-center justify-center gap-2 py-3 text-blue-600 bg-blue-50 dark:bg-blue-500/10 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition font-bold text-sm mb-2"
+                      aria-label="Profilim"
+                    >
+                      <User className="w-4 h-4" />
+                      Profilim
+                    </button>
                     <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-700/50 my-1"></div>
                     <button
                       onClick={() => { onLogout(); setIsMobileMenuOpen(false); }}

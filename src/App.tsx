@@ -8,6 +8,10 @@ import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
 import { CategoryFilter } from './components/CategoryFilter';
 import { EventCard } from './components/EventCard';
+import { FavoritesPage } from './pages/FavoritesPage';
+import { ComparisonPage } from './pages/ComparisonPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SuggestFacilityPage } from './pages/SuggestFacilityPage';
 import { EventDetailModal } from './components/EventDetailModal';
 import { AddReviewModal } from './components/AddReviewModal';
 import { SubmitEventModal } from './components/SubmitEventModal';
@@ -27,23 +31,26 @@ import { Trophy, SearchX, Sparkles, Filter, PlusCircle, MapPin, Building2, Map a
 import { CATEGORY_CRITERIA_MAP, calculateOverallScore } from './lib/scoreUtils';
 import { detectCategory, getEventDetailUrl, getSlugOrId } from './lib/categoryUtils';
 
-const EventDetailWrapper = ({ 
-  events, 
-  onRateClick, 
-  onLikeReview, 
-  currentUser, 
+const EventDetailWrapper = ({
+  events,
+  onRateClick,
+  onLikeReview,
+  currentUser,
   setEditingEvent,
   onUpdateEvent,
+  onToggleFavorite,
   isLoading
-}: { 
-  events: SportsEvent[], 
-  onRateClick: (event: SportsEvent) => void, 
-  onLikeReview: (eventId: string, reviewId: string) => void, 
-  currentUser: UserProfile | null, 
+}: {
+  events: SportsEvent[],
+  onRateClick: (event: SportsEvent) => void,
+  onLikeReview: (eventId: string, reviewId: string) => void,
+  currentUser: UserProfile | null,
   setEditingEvent: (event: SportsEvent) => void,
   onUpdateEvent: (event: SportsEvent) => void,
+  onToggleFavorite: (eventId: string) => void,
   isLoading?: boolean
 }) => {
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -108,6 +115,8 @@ const EventDetailWrapper = ({
       <SEOHead event={event} />
       <EventDetailModal
         event={event}
+        isFavorite={currentUser?.favorites?.includes(event.id)}
+        onToggleFavorite={onToggleFavorite}
         onClose={() => navigate('/')}
         onOpenRateForm={onRateClick}
         onLikeReview={onLikeReview}
@@ -336,6 +345,33 @@ export default function App() {
     }
   };
 
+
+  const handleToggleFavorite = async (eventId: string) => {
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    const currentFavorites = currentUser.favorites || [];
+    const isFavorite = currentFavorites.includes(eventId);
+    let newFavorites;
+    if (isFavorite) {
+      newFavorites = currentFavorites.filter(id => id !== eventId);
+    } else {
+      newFavorites = [...currentFavorites, eventId];
+    }
+    
+    const updatedUser = { ...currentUser, favorites: newFavorites };
+    setCurrentUser(updatedUser);
+    try {
+      localStorage.setItem('sporpuan_user', JSON.stringify(updatedUser));
+      await updateDoc(doc(db, 'users', currentUser.id), {
+        favorites: newFavorites
+      });
+    } catch (e) {
+      console.error('Error updating favorites:', e);
+    }
+  };
+
   const handleOpenAuthModal = () => {
     setIsAuthModalOpen(true);
   };
@@ -552,6 +588,7 @@ export default function App() {
   const detailElement = (
     <EventDetailWrapper 
       events={events}
+      onToggleFavorite={handleToggleFavorite}
       onRateClick={(ev) => {
         if (!currentUser) {
           setIsAuthModalOpen(true);
@@ -681,6 +718,31 @@ export default function App() {
             </>
           } />
 
+          
+          <Route path="/favoriler" element={
+            <FavoritesPage 
+              events={events} 
+              currentUser={currentUser} 
+              onToggleFavorite={handleToggleFavorite} 
+              onRateClick={(ev) => {
+                if (!currentUser) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                window.scrollTo(0, 0);
+                navigate(`/yorum-yaz?id=${ev.id}`);
+              }}
+            />
+          } />
+          <Route path="/karsilastir" element={
+            <ComparisonPage events={events} />
+          } />
+          <Route path="/profil" element={
+            <ProfilePage events={events} currentUser={currentUser} />
+          } />
+          <Route path="/tesis-oner" element={
+            <SuggestFacilityPage />
+          } />
           <Route path="/harita" element={
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col min-h-[calc(100vh-100px)]">
               <SEOHead title="Haritada Spor Tesislerini ve Salonları Keşfet" description="Türkiye genelindeki fitness salonlarını, spor okullarını, yüzme havuzlarını ve stadyumları interaktif harita üzerinde keşfedin." />
@@ -692,7 +754,7 @@ export default function App() {
                       <span>Sporpuan Haritası</span>
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Türkiye genelindeki spor tesislerini ve salonlarını tam sayfa harita üzerinde inceleyin
+                      Türkiye genelindeki spor tesislerini, spor salonlarını, spor okullarını ve spor etkinliklerini tam sayfa harita üzerinde inceleyin
                     </p>
                   </div>
                 </div>
@@ -814,6 +876,8 @@ export default function App() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {paginatedEvents.map((event) => (
                           <EventCard
+                            isFavorite={currentUser?.favorites?.includes(event.id)}
+                            onToggleFavorite={(ev, e) => handleToggleFavorite(ev.id)}
                             key={event.id}
                             event={event}
                             onSelectEvent={(ev) => {

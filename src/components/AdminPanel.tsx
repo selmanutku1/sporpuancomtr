@@ -1,7 +1,7 @@
 import { Avatar } from './Avatar';
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { UserProfile, SportsEvent, UserRole, Review, CorporateApplication, SportsCategory } from '../types';
+import { UserProfile, SportsEvent, UserRole, Review, CorporateApplication, SportsCategory, FacilitySuggestion } from '../types';
 import { db } from '../lib/firebase';
 import * as XLSX from 'xlsx';
 import { INITIAL_CORPORATE_APPS } from '../data/mockEvents';
@@ -161,10 +161,12 @@ function formatAdminReviewDate(dateStr?: string): string {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ events, onDeleteEvent, onEditEvent, onUpdateEvent, onAddEvent, onUpdateEventsBatch }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'events' | 'reviews' | 'corporate' | 'invite-requests' | 'import'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'events' | 'reviews' | 'corporate' | 'invite-requests' | 'import' | 'suggestions'>('overview');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [corporateApps, setCorporateApps] = useState<CorporateApplication[]>([]);
   const [inviteRequests, setInviteRequests] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<FacilitySuggestion[]>([]);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<FacilitySuggestion | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [importing, setImporting] = useState(false);
@@ -390,15 +392,13 @@ Sporpuan Yönetimi`;
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, 'corporate_invite_requests'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'facility_suggestions'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const reqs: any[] = [];
+      const list: FacilitySuggestion[] = [];
       snapshot.forEach((doc) => {
-        reqs.push({ id: doc.id, ...doc.data() });
+        list.push({ id: doc.id, ...doc.data() } as FacilitySuggestion);
       });
-      setInviteRequests(reqs);
-    }, (err) => {
-      console.warn("Firestore invite requests listener error:", err);
+      setSuggestions(list);
     });
     return () => unsubscribe();
   }, []);
@@ -919,7 +919,7 @@ Sporpuan Yönetimi`;
 
       {/* Tabs */}
       <div className="flex overflow-x-auto space-x-2 border-b border-slate-200 mb-6 pb-2">
-        {(['overview', 'users', 'events', 'reviews', 'corporate', 'invite-requests', 'import'] as const).map(tab => (
+        {(['overview', 'users', 'events', 'reviews', 'corporate', 'invite-requests', 'import', 'suggestions'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -936,6 +936,7 @@ Sporpuan Yönetimi`;
             {tab === 'corporate' && 'Kurumsal Başvurular'}
             {tab === 'invite-requests' && 'Davetiye Talepleri'}
             {tab === 'import' && 'Tesis İçe Aktar'}
+            {tab === 'suggestions' && 'Tesis Önerileri'}
           </button>
         ))}
       </div>
@@ -1497,6 +1498,64 @@ ${fullUrl}`;
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'suggestions' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100">
+            <h2 className="text-xl font-bold text-slate-900">Kullanıcı Tesis Önerileri</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                  <th className="p-4 font-bold">Tesis Adı</th>
+                  <th className="p-4 font-bold">Kategori</th>
+                  <th className="p-4 font-bold">Detaylar</th>
+                  <th className="p-4 font-bold">Tarih</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {suggestions.map(sug => (
+                  <tr key={sug.id} onClick={() => setSelectedSuggestion(sug)} className="hover:bg-slate-50 transition cursor-pointer">
+                    <td className="p-4 font-bold text-sm text-slate-800">{sug.facilityName}</td>
+                    <td className="p-4 text-sm text-slate-600">{sug.category}</td>
+                    <td className="p-4 text-sm text-slate-600 truncate max-w-xs">{sug.details}</td>
+                    <td className="p-4 text-xs text-slate-500">{new Date(sug.createdAt).toLocaleDateString('tr-TR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {selectedSuggestion && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl">
+            <h3 className="text-xl font-bold text-slate-900 mb-4">Öneri Detayları</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase">Tesis Adı</label>
+                <p className="text-slate-900">{selectedSuggestion.facilityName}</p>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase">Kategori</label>
+                <p className="text-slate-900">{selectedSuggestion.category}</p>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase">Detaylar</label>
+                <p className="text-slate-700 bg-slate-50 p-3 rounded-xl">{selectedSuggestion.details}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setSelectedSuggestion(null)}
+              className="mt-6 w-full px-4 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition"
+            >
+              Kapat
+            </button>
           </div>
         </div>
       )}

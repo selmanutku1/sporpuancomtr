@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, ShieldCheck, Heart, Mail, Instagram, Twitter, Check, Building2 } from 'lucide-react';
+import { Star, ShieldCheck, Heart, Mail, Instagram, Check, Building2 } from 'lucide-react';
 import { LegalModal, LegalDocType } from './LegalModal';
 
 interface FooterProps {
@@ -31,18 +31,15 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSubmitEvent }) => {
                 </div>
               </div>
               <p className="text-xs font-bold text-blue-400 tracking-wide">
-                Türkiye'nin Bağımsız Spor puanlama & İnceleme Platformu
+                Türkiye'nin Bağımsız Spor Değerlendirme & İnceleme Platformu
               </p>
             </div>
             <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
               Spor tesislerini, salonlarını, okullarını ve organizasyonlarını 5 farklı boyutta objektif kriterlerle inceliyor ve sporseverlerin güvenle keşfetmesini sağlıyoruz.
             </p>
             <div className="flex items-center gap-3">
-              <a href="#" className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-colors border border-slate-800 hover:border-blue-600">
+              <a href="https://www.instagram.com/sporpuan/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-colors border border-slate-800 hover:border-blue-600">
                 <Instagram className="w-4 h-4" />
-              </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-colors border border-slate-800 hover:border-blue-600">
-                <Twitter className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -103,6 +100,18 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSubmitEvent }) => {
                 </button>
               </li>
               <li><a href="mailto:iletisim@sporpuan.com" className="hover:text-blue-400 transition-colors">İletişim</a></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo(0, 0);
+                    navigate('/tesis-oner');
+                  }}
+                  className="hover:text-blue-400 transition-colors text-left"
+                >
+                  Tesis Öner
+                </button>
+              </li>
             </ul>
           </div>
 

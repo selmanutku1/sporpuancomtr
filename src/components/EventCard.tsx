@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { getEventDetailUrl } from '../lib/categoryUtils';
 import { SportsEvent } from '../types';
 import { getScoreBadgeColor, getScoreLabel, CATEGORY_CRITERIA_MAP, getCriterionScore } from '../lib/scoreUtils';
 import { 
@@ -10,16 +12,21 @@ import {
   Star, 
   ChevronRight,
   Sparkles,
-  Trophy
+  Trophy,
+  Heart
 } from 'lucide-react';
 
 interface EventCardProps {
+  isFavorite?: boolean;
+  onToggleFavorite?: (event: SportsEvent, e: React.MouseEvent) => void;
   event: SportsEvent;
   onSelectEvent: (event: SportsEvent) => void;
   onRateClick: (event: SportsEvent, e: React.MouseEvent) => void;
 }
 
 export const EventCard: React.FC<EventCardProps> = ({
+  isFavorite = false,
+  onToggleFavorite,
   event,
   onSelectEvent,
   onRateClick,
@@ -27,8 +34,8 @@ export const EventCard: React.FC<EventCardProps> = ({
   const scoreBadge = getScoreBadgeColor(event.overallScore);
 
   return (
-    <div
-      onClick={() => onSelectEvent(event)}
+    <Link
+      to={getEventDetailUrl(event)}
       className="group bg-white dark:bg-slate-900 hover:bg-slate-50/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer transform hover:-translate-y-1"
     >
       {/* Top Image Banner */}
@@ -47,6 +54,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <span>{event.category}</span>
         </div>
 
+        
         {/* Sporpuan Rating Badge Top Right */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           <div className="px-3 py-1.5 rounded-xl text-sm font-black tracking-tight shadow-md flex items-center gap-1 bg-blue-600 dark:bg-blue-500 text-white border border-blue-500 dark:border-blue-400">
@@ -119,7 +127,11 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={(e) => onRateClick(event, e)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRateClick(event, e);
+              }}
               className="px-2.5 py-1.5 text-xs font-bold bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 rounded-lg transition-colors shadow-2xs"
             >
               Puanla
@@ -132,6 +144,6 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
 
       </div>
-    </div>
+    </Link>
   );
 };

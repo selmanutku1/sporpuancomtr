@@ -1,4 +1,5 @@
 import { Avatar } from './Avatar';
+import { anonymizeUserName } from '../lib/nameUtils';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { SportsEvent, RatingCriterion, Review, UserProfile, SportsCategory } from '../types';
@@ -1083,7 +1084,7 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">{submittedReview.userName}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">{anonymizeUserName(submittedReview.userName)}</span>
                 </div>
                 <div className="flex items-center gap-1 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-xs font-black px-2.5 py-0.5 rounded">
                   <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />

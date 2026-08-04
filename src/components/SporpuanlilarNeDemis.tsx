@@ -1,4 +1,5 @@
 import { Avatar } from './Avatar';
+import { anonymizeUserName } from '../lib/nameUtils';
 import React, { useMemo } from 'react';
 import { SportsEvent, Review } from '../types';
 import { MessageCircle, Camera, Map, Star, Quote } from 'lucide-react';
@@ -270,14 +271,14 @@ export const SporpuanlilarNeDemis: React.FC<Props> = ({ events }) => {
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         {rev.userAvatar ? (
-                          <Avatar src={rev.userAvatar} name={rev.userName} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700" />
+                          <Avatar src={rev.userAvatar} name={anonymizeUserName(rev.userName)} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700" />
                         ) : (
                           <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${avatarColor} flex items-center justify-center font-bold text-sm sm:text-base`}>
                             {rev.userName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()}
                           </div>
                         )}
                         <div>
-                          <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-tight">{rev.userName}</h4>
+                          <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-tight">{anonymizeUserName(rev.userName)}</h4>
                           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[130px] sm:max-w-[160px]">{rev.eventTitle}</p>
                         </div>
                       </div>

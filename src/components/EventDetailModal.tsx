@@ -1,4 +1,5 @@
 import { Avatar } from './Avatar';
+import { anonymizeUserName } from '../lib/nameUtils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
@@ -22,6 +23,7 @@ import {
   PlusCircle,
   Share2,
   Trophy,
+  Heart,
   Edit3,
   Eye,
   EyeOff,
@@ -194,19 +196,11 @@ const FacilityMiniMap: React.FC<{ event: SportsEvent; onExpandMap: () => void }>
   );
 };
 
-function anonymizeUserName(name: string): string {
-  if (!name) return 'K*** Ö***';
-  if (name.includes('*')) return name;
-  const parts = name.trim().split(/\s+/);
-  return parts
-    .map((part) => {
-      if (part.length <= 1) return part + '***';
-      return part.charAt(0) + '***';
-    })
-    .join(' ');
-}
+
 
 interface EventDetailModalProps {
+  isFavorite?: boolean;
+  onToggleFavorite?: (eventId: string) => void;
   event: SportsEvent | null;
   onClose: () => void;
   onOpenRateForm: (event: SportsEvent) => void;
@@ -338,12 +332,14 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   </span>
                 )}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight">
                 {event.title}
-              </h2>
+              </h1>
+              
               <div className="flex flex-col gap-2 mt-2 sm:mt-3">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                   <button 
+ 
                     type="button"
                     onClick={() => navigate(`/harita?id=${event.id}`)}
                     className="text-xs text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-1.5 bg-blue-50 dark:bg-slate-800/80 hover:bg-blue-100 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-slate-700 cursor-pointer transition active:scale-95 font-bold shadow-2xs"
@@ -684,19 +680,19 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                             {rev.userAvatar ? (
                               <img referrerPolicy="no-referrer"
                                 src={rev.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
-                                alt={rev.userName}
+                                alt={anonymizeUserName(rev.userName)}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop';
                                 }}
                               />
                             ) : (
-                              rev.userName.charAt(0)
+                              anonymizeUserName(rev.userName).charAt(0)
                             )}
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{rev.userName}</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{anonymizeUserName(rev.userName)}</span>
                               {rev.verifiedAttendee && (
                                 <span className="bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800/80 flex items-center gap-0.5">
                                   <BadgeCheck className="w-3 h-3 text-blue-600 dark:text-blue-400" /> Katılımcı
