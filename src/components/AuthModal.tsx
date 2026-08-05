@@ -265,291 +265,139 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col text-slate-800 dark:text-slate-100 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh] overflow-hidden text-slate-800 dark:text-slate-100 animate-in zoom-in-95 duration-200">
         
         {/* Modal Header */}
-        <div className="bg-slate-50 dark:bg-slate-850 p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
-              <ShieldCheck className="w-5 h-5 text-white" />
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">
-                {activeTab === 'register' ? 'Sporpuan Hesabı Oluştur' : 'Sporpuan Girişi'}
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
+                {activeTab === 'register' ? 'Hesap Oluştur' : 'Giriş Yap'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Spor topluluğuna katılın</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-full transition"
+            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Selection Navigation */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-850 p-1 gap-1">
+        <div className="flex p-1 gap-1 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('register')}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition ${
               activeTab === 'register'
-                ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'
             }`}
           >
-            <UserPlus className="w-4 h-4" />
-            <span>Kayıt Ol (Üye Ol)</span>
+            Kayıt Ol
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('login')}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition ${
               activeTab === 'login'
-                ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'
             }`}
           >
-            <LogIn className="w-4 h-4" />
-            <span>Giriş Yap</span>
+            Giriş Yap
           </button>
         </div>
 
-        {/* Modal Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-5">
+        {/* Modal Content - Scrollable */}
+        <div className="p-4 flex-1 overflow-y-auto space-y-3">
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs rounded-xl font-medium border border-red-200 dark:border-red-800/80">
+            <div className="p-2.5 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 text-[11px] rounded-lg border border-red-100 dark:border-red-900 font-medium">
               {error}
             </div>
           )}
           
           {/* Social Logins */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold text-xs py-2.5 px-4 rounded-xl transition-colors shadow-xs"
+              className="flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 font-bold text-[11px] py-2 rounded-lg transition"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               <span>Google</span>
             </button>
             <button
               type="button"
               onClick={handleAppleLogin}
-              className="flex items-center justify-center gap-2 bg-slate-900 dark:bg-slate-750 border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors shadow-xs"
+              className="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] py-2 rounded-lg transition"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.05 2.25.68 2.74.68.42 0 1.64-.81 3.01-.76 1.48.06 2.6.59 3.3 1.48-2.64 1.45-2.18 4.95.53 6.03-.7 1.87-1.47 3.5-2.62 4.92l.04.62zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
-                />
-              </svg>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.05 2.25.68 2.74.68.42 0 1.64-.81 3.01-.76 1.48.06 2.6.59 3.3 1.48-2.64 1.45-2.18 4.95.53 6.03-.7 1.87-1.47 3.5-2.62 4.92l.04.62zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
               <span>Apple</span>
             </button>
           </div>
 
-          <div className="relative flex items-center justify-center my-2">
-            <div className="border-t border-slate-200 dark:border-slate-800 w-full"></div>
-            <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider absolute">
-              veya e-posta ile
-            </span>
+          <div className="relative flex items-center justify-center my-1.5">
+            <div className="border-t border-slate-100 dark:border-slate-800 w-full"></div>
+            <span className="bg-white dark:bg-slate-900 px-2 text-[10px] font-bold text-slate-400 uppercase">veya</span>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            {/* Email input */}
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700 dark:text-slate-300 block">E-Posta Adresi *</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ornek@domain.com"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Password input */}
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700 dark:text-slate-300 block">Şifre *</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 font-medium"
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-3 text-[11px]">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-Posta"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-slate-100 focus:border-blue-500 outline-none"
+            />
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Şifre"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-slate-100 focus:border-blue-500 outline-none"
+            />
+            
+            {activeTab === 'login' && (
               <div className="flex items-center justify-between">
-                {activeTab === 'login' && (
-                  <button 
-                    type="button" 
-                    onClick={handleForgotPassword}
-                    className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline mt-1"
-                  >
-                    Şifremi unuttum?
-                  </button>
-                )}
-                {activeTab === 'login' && (
-                  <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 mt-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded text-blue-600"
-                    />
-                    Beni Hatırla
-                  </label>
-                )}
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="rounded" />
+                  <span className="text-[10px] text-slate-600 dark:text-slate-300">Beni Hatırla</span>
+                </label>
+                <button type="button" onClick={handleForgotPassword} className="text-[10px] text-blue-600 font-bold hover:underline">
+                  Şifremi Unuttum?
+                </button>
               </div>
-            </div>
-
-            {/* Legal Consent Checkboxes for Registration */}
+            )}
+            
             {activeTab === 'register' && (
-              <div className="space-y-2.5 pt-1 bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 p-3.5 rounded-xl">
-                <div className="flex items-start gap-2.5">
-                  <input
-                    type="checkbox"
-                    id="terms-check"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-700 focus:ring-blue-500 cursor-pointer shrink-0"
-                  />
-                  <label htmlFor="terms-check" className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug cursor-pointer select-none">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowLegalModal('terms');
-                      }}
-                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
-                    >
-                      Kullanım Şartları
-                    </button>
-                    {' '}ve{' '}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowLegalModal('privacy');
-                      }}
-                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
-                    >
-                      Gizlilik Politikası
-                    </button>
-                    'nı okudum, kabul ediyorum. <span className="text-red-500 font-bold">*</span>
-                  </label>
-                </div>
-
-                <div className="flex items-start gap-2.5">
-                  <input
-                    type="checkbox"
-                    id="kvkk-check"
-                    checked={kvkkAccepted}
-                    onChange={(e) => setKvkkAccepted(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-700 focus:ring-blue-500 cursor-pointer shrink-0"
-                  />
-                  <label htmlFor="kvkk-check" className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug cursor-pointer select-none">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowLegalModal('kvkk');
-                      }}
-                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
-                    >
-                      KVKK Aydınlatma Metni
-                    </button>
-                    {' '}kapsamında kişisel verilerimin işlenmesini onaylıyorum. <span className="text-red-500 font-bold">*</span>
-                  </label>
-                </div>
+              <div className="space-y-1.5 bg-slate-50 dark:bg-slate-850 p-2 rounded-lg">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="mt-0.5" />
+                  <span className="text-[10px] text-slate-600 dark:text-slate-300">Kullanım Şartları ve Gizlilik Politikasını kabul ediyorum.</span>
+                </label>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={kvkkAccepted} onChange={(e) => setKvkkAccepted(e.target.checked)} className="mt-0.5" />
+                  <span className="text-[10px] text-slate-600 dark:text-slate-300">KVKK Aydınlatma Metnini kabul ediyorum.</span>
+                </label>
               </div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-extrabold rounded-xl transition shadow-md shadow-blue-200/50 dark:shadow-none flex items-center justify-center gap-2 mt-2"
-            >
-              {activeTab === 'register' ? (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  <span>Hesap Oluştur</span>
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4" />
-                  <span>Giriş Yap</span>
-                </>
-              )}
+            <button type="submit" className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
+              {activeTab === 'register' ? 'Hesap Oluştur' : 'Giriş Yap'}
             </button>
           </form>
-
-          {/* Legal Notice Footer */}
-          <div className="mt-3 text-center text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-            Devam ederek sporpuan{' '}
-            <button
-              type="button"
-              onClick={() => setShowLegalModal('terms')}
-              className="text-slate-600 dark:text-slate-300 underline font-semibold hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              Kullanım Şartları
-            </button>
-            {', '}
-            <button
-              type="button"
-              onClick={() => setShowLegalModal('privacy')}
-              className="text-slate-600 dark:text-slate-300 underline font-semibold hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              Gizlilik Politikası
-            </button>
-            {' ve '}
-            <button
-              type="button"
-              onClick={() => setShowLegalModal('kvkk')}
-              className="text-slate-600 dark:text-slate-300 underline font-semibold hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              KVKK Bildirimi
-            </button>
-            'ni inceleyebilirsiniz.
-          </div>
         </div>
       </div>
-
-      {/* Render Legal Documents Modal if requested */}
-      {showLegalModal && (
-        <LegalModal
-          initialDoc={showLegalModal}
-          onClose={() => setShowLegalModal(null)}
-        />
-      )}
     </div>
   );
 };

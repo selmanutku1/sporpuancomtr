@@ -43,15 +43,28 @@ export const CertifiedPage = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex-1 w-full max-w-md"
           >
-            <div className="relative bg-white p-8 rounded-3xl shadow-2xl border-4 border-blue-600 rotate-2 hover:rotate-0 transition-transform duration-500">
-              <div className="border-2 border-dashed border-slate-200 p-6 flex flex-col items-center text-center gap-4">
-                <Award className="w-16 h-16 text-blue-600" />
-                <h3 className="text-xl font-black text-slate-900">PREMIUM KALİTE</h3>
-                <p className="text-sm text-slate-500">Sporpuan Bağımsız Denetim Kurulu tarafından onaylanmıştır.</p>
-                <div className="flex gap-2">
-                  <Dumbbell className="w-6 h-6 text-slate-300" />
-                  <Users className="w-6 h-6 text-slate-300" />
-                  <ShieldCheck className="w-6 h-6 text-emerald-500" />
+            <div className="relative bg-white p-1 rounded-2xl shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-cyan-500 opacity-10"></div>
+              <div className="relative bg-slate-900 text-white p-8 rounded-xl border border-slate-800 flex flex-col items-center text-center gap-6">
+                <div className="bg-white/10 p-4 rounded-full">
+                  <Award className="w-12 h-12 text-blue-400" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black tracking-tighter">SPORPUAN</h3>
+                  <p className="text-blue-400 font-bold text-sm tracking-widest uppercase">PREMIUM KALİTE</p>
+                </div>
+                <div className="w-full border-t border-white/10 pt-6">
+                  <p className="text-xs text-slate-400 font-medium tracking-tight">Bağımsız Denetim Kurulu tarafından<br />onaylanmıştır.</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center gap-1">
+                    <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Güvenli</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <CheckCircle className="w-6 h-6 text-emerald-400" />
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Onaylı</span>
+                  </div>
                 </div>
               </div>
             </div>

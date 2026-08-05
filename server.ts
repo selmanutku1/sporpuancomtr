@@ -27,7 +27,7 @@ async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'custom', // custom so it doesn't intercept HTML if we do it ourselves, but wait, 'spa' is better? If 'custom', we must handle HTML. Let's use 'custom' so Vite doesn't serve index.html directly.
+      appType: 'spa', // Changed from 'custom' to 'spa'
     });
     app.use(vite.middlewares);
   }
@@ -727,6 +727,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   // Dynamic OpenGraph Meta Tag Handler for Social Media Scrapers (WhatsApp, Twitter, LinkedIn, Telegram)
   app.use(async (req, res, next) => {
+    console.log('Request received:', req.method, req.path, 'Accept:', req.headers.accept);
     if (req.method === 'GET' && (req.headers.accept || '').includes('text/html')) {
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers.host || 'localhost:3000';
@@ -740,6 +741,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
           let html = await fs.readFile(indexPath, 'utf-8');
 
           html = html.replace(/content="\/og-image\.svg"/g, `content="${baseUrl}/og-image.svg"`);
+          html = html.replace(/content="\/og-image\.png"/g, `content="${baseUrl}/og-image.png"`);
           html = html.replace(/content="\/sporpuan-logo\.svg"/g, `content="${baseUrl}/sporpuan-logo.svg"`);
           html = html.replace(/href="\/favicon\.svg"/g, `href="${baseUrl}/favicon.svg"`);
 
@@ -769,7 +771,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               const cityStr = facilityData.city ? `${facilityData.city}` : 'Türkiye';
               const reviewCountStr = facilityData.reviewCount || (facilityData.reviews ? facilityData.reviews.length : 0);
               
-              const metaTitle = `⭐ ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} Puanı & Yorumları (${scoreStr}/10) | ${catName} - SporPuan`;
+              const metaTitle = `⭐ ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} Puanı & Yorumları (${scoreStr}/10) | ${catName} - Sporpuan`;
               const metaDescription = `${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} (${cityStr}) için sporseverler tarafından verilen ${scoreStr}/10 puanı, ${reviewCountStr} gerçek kullanıcı yorumu, hijyen, ekipman, eğitmen kadrosu ve lokasyon detaylı kriter incelemesi.`;
               const metaKeywords = `${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)}, ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} yorumları, ${facilityData.title || facilityData.name || (facilityData.displayName && facilityData.displayName.text)} puanı, ${cityStr} ${catName}, ${facilityData.venue || ''}, spor salonu tavsiyesi, sporpuan`;
               const metaImage = facilityData.image || `${baseUrl}/og-image.png`;
@@ -814,7 +816,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[SporPuan Server] Sunucu çalışıyor: http://0.0.0.0:${PORT}`);
+    console.log(`[Sporpuan Server] Sunucu çalışıyor: http://0.0.0.0:${PORT}`);
   });
 }
 
